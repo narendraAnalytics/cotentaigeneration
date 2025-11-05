@@ -43,7 +43,7 @@ export const config: EventConfig = {
   type: 'event',
   description: 'Generate final blog content using enhanced data and Google Search for up-to-date information',
   subscribes: ['generate-content-with-search'],
-  emits: [], // Could emit to 'content-generated' for notifications in future
+  emits: ['generate-tts'],
   input: GenerateContentInputSchema,
   flows: ['content-generation']
 };
@@ -228,6 +228,16 @@ Generate the article now:`;
       requestId,
       stateKey: `blog:${requestId}`
     });
+
+    // Emit event to generate TTS audio
+    await emit({
+      topic: 'generate-tts',
+      data: {
+        requestId
+      }
+    });
+
+    logger.info('Emitted to generate-tts topic', { requestId });
 
     // Log preview for monitoring
     logger.info('Generated Article Preview', {

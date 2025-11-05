@@ -15,6 +15,18 @@
   {
     "id": "content-generation",
     "config": {
+      "steps\\send-blog-email.step.ts": {
+        "x": 646,
+        "y": -108
+      },
+      "steps\\get-content.step.ts": {
+        "x": -47,
+        "y": -151
+      },
+      "steps\\generate-tts.step.ts": {
+        "x": 630,
+        "y": -443
+      },
       "steps\\generate-content.step.ts": {
         "x": -1181,
         "y": -305
@@ -27,13 +39,9 @@
         "x": -692,
         "y": -216
       },
-      "steps\\get-content.step.ts": {
-        "x": -47,
-        "y": -151
-      },
-      "steps\\send-blog-email.step.ts": {
-        "x": 561,
-        "y": -307
+      "steps\\get-audio.step.ts": {
+        "x": 0,
+        "y": 448
       }
     }
   }

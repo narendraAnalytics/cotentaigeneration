@@ -10,7 +10,14 @@ const SuccessResponseSchema = z.object({
   article: z.any(),
   status: z.string(),
   generatedAt: z.string(),
-  fullContent: z.string()
+  fullContent: z.string(),
+  audio: z.object({
+    audioData: z.string(),
+    format: z.string(),
+    sampleRate: z.number(),
+    channels: z.number(),
+    generatedAt: z.string()
+  }).optional()
 });
 
 type SuccessResponse = z.infer<typeof SuccessResponseSchema>;
@@ -68,9 +75,36 @@ export const handler: ApiRouteHandler = async (req, { logger, state }) => {
       };
     }
 
+    // Try to get TTS audio data if available
+    const ttsData = await state.get<any>('tts', id);
+
+    // Include audio data in response if available and not an error
+    if (ttsData && !ttsData.error && ttsData.audioData) {
+      logger.info('TTS audio data found, including in response', {
+        requestId: id,
+        audioDataLength: ttsData.audioData.length
+      });
+
+      (result as any).audio = {
+        audioData: ttsData.audioData,
+        format: ttsData.format,
+        sampleRate: ttsData.sampleRate,
+        channels: ttsData.channels,
+        generatedAt: ttsData.generatedAt
+      };
+    } else if (ttsData?.error) {
+      logger.warn('TTS generation failed for this article', {
+        requestId: id,
+        error: ttsData.error
+      });
+    } else {
+      logger.info('TTS audio not yet available', { requestId: id });
+    }
+
     logger.info('Blog content retrieved successfully', {
       requestId: id,
-      status: result.status
+      status: result.status,
+      hasAudio: !!(result as any).audio
     });
 
     return {
