@@ -1,0 +1,40 @@
+[
+  {
+    "id": "basic-tutorial",
+    "config": {
+      "steps\\petstore\\state-audit-cron.step.ts": {
+        "x": 226,
+        "y": 0
+      },
+      "steps\\petstore\\process-food-order.step.ts": {
+        "x": 226,
+        "y": 220
+      }
+    }
+  },
+  {
+    "id": "content-generation",
+    "config": {
+      "steps\\generate-content.step.ts": {
+        "x": -1181,
+        "y": -305
+      },
+      "steps\\generate-content-with-search.step.ts": {
+        "x": -69,
+        "y": -395
+      },
+      "steps\\enhance-prompt.step.ts": {
+        "x": -692,
+        "y": -216
+      },
+      "steps\\get-content.step.ts": {
+        "x": -47,
+        "y": -151
+      },
+      "steps\\send-blog-email.step.ts": {
+        "x": 561,
+        "y": -307
+      }
+    }
+  }
+]
