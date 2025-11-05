@@ -1510,3 +1510,1531 @@ Then follow Phase 5 documentation to build the UI!
 - ✅ **Option B**: Set up Neon database first
 - ✅ **Option C**: Both in parallel
 
+---
+
+# 🎨 Phase 6: Frontend Development with Animated Icons & Beautiful UI
+
+## 6.1 Tech Stack & Dependencies
+
+### Core Framework & Libraries
+```bash
+Framework: Next.js 15 (App Router)
+UI Library: React 18+
+Language: TypeScript (Strict Mode)
+Styling: Tailwind CSS v3.4+
+Component Library: shadcn/ui
+Animations: Framer Motion v11+
+Forms: React Hook Form v7+ with Zod validation
+HTTP Client: Native Fetch API
+State Management: React Context (light state only)
+```
+
+### Complete Package Installation
+
+**Step 1: Create Next.js Project**
+```bash
+# In project root
+npx create-next-app@latest frontend
+# ✔ TypeScript? Yes
+# ✔ ESLint? Yes
+# ✔ Tailwind CSS? Yes
+# ✔ src/ directory? No
+# ✔ App Router? Yes
+# ✔ Turbopack? Yes
+# ✔ Import alias? @/*
+
+cd frontend
+```
+
+**Step 2: Install Animated Icon Libraries**
+```bash
+# Primary icon library (beautiful, consistent, tree-shakeable)
+npm install lucide-react
+
+# Animation library (smooth, physics-based animations)
+npm install framer-motion
+
+# Additional icon sets (Font Awesome, Material Icons, etc.)
+npm install react-icons
+
+# Modern animated icons (specialized animations)
+npm install @tabler/icons-react
+
+# Icon animation utilities
+npm install clsx tailwind-merge
+```
+
+**Step 3: Install shadcn/ui**
+```bash
+# Initialize shadcn/ui
+npx shadcn-ui@latest init
+
+# Install required components
+npx shadcn-ui@latest add button
+npx shadcn-ui@latest add input
+npx shadcn-ui@latest add textarea
+npx shadcn-ui@latest add select
+npx shadcn-ui@latest add dialog
+npx shadcn-ui@latest add dropdown-menu
+npx shadcn-ui@latest add badge
+npx shadcn-ui@latest add card
+npx shadcn-ui@latest add separator
+npx shadcn-ui@latest add skeleton
+npx shadcn-ui@latest add progress
+npx shadcn-ui@latest add slider
+npx shadcn-ui@latest add switch
+npx shadcn-ui@latest add label
+npx shadcn-ui@latest add tabs
+npx shadcn-ui@latest add toast
+npx shadcn-ui@latest add tooltip
+```
+
+**Step 4: Install Form & Validation**
+```bash
+npm install react-hook-form zod @hookform/resolvers
+```
+
+**Step 5: Install Toast Notifications**
+```bash
+npm install react-hot-toast
+```
+
+**Step 6: Install Utilities**
+```bash
+npm install nanoid date-fns
+```
+
+### Package.json Configuration
+```json
+{
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "typescript": "^5.3.0",
+    "lucide-react": "^0.441.0",
+    "framer-motion": "^11.5.0",
+    "react-icons": "^5.3.0",
+    "@tabler/icons-react": "^3.14.0",
+    "react-hook-form": "^7.53.0",
+    "zod": "^3.23.0",
+    "@hookform/resolvers": "^3.9.0",
+    "react-hot-toast": "^2.4.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.2",
+    "nanoid": "^5.0.7",
+    "date-fns": "^3.6.0"
+  }
+}
+```
+
+---
+
+## 6.2 Animated Icons Setup & Configuration
+
+### Lucide React - Primary Icon Library
+
+**Why Lucide?**
+- ✅ 1,500+ beautiful, consistent icons
+- ✅ Tree-shakeable (only import what you use)
+- ✅ TypeScript support
+- ✅ Customizable size, color, stroke
+- ✅ Works seamlessly with Tailwind
+- ✅ Active development & maintained
+
+**Usage Example:**
+```typescript
+import { Sparkles, Wand2, Mail, Download, Play, Pause } from 'lucide-react';
+
+// Basic usage
+<Sparkles className="w-6 h-6 text-blue-500" />
+
+// With Tailwind animations
+<Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+
+// Customizable props
+<CheckCircle size={32} strokeWidth={2.5} color="#10b981" />
+```
+
+### Framer Motion - Advanced Animations
+
+**Animation Patterns for Icons:**
+
+**1. Spin Animation**
+```typescript
+import { motion } from 'framer-motion';
+import { RefreshCw } from 'lucide-react';
+
+<motion.div
+  animate={{ rotate: 360 }}
+  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+>
+  <RefreshCw className="w-6 h-6" />
+</motion.div>
+```
+
+**2. Bounce Animation**
+```typescript
+<motion.div
+  animate={{ y: [0, -10, 0] }}
+  transition={{ duration: 0.5, repeat: Infinity }}
+>
+  <Sparkles className="w-8 h-8 text-yellow-500" />
+</motion.div>
+```
+
+**3. Scale Pulse Animation**
+```typescript
+<motion.div
+  animate={{ scale: [1, 1.2, 1] }}
+  transition={{ duration: 1, repeat: Infinity }}
+>
+  <Bell className="w-6 h-6 text-red-500" />
+</motion.div>
+```
+
+**4. Fade In Animation**
+```typescript
+<motion.div
+  initial={{ opacity: 0, scale: 0.5 }}
+  animate={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.5, type: "spring" }}
+>
+  <CheckCircle className="w-12 h-12 text-green-500" />
+</motion.div>
+```
+
+**5. Icon Morph (Menu → X)**
+```typescript
+<motion.div
+  animate={{ rotate: isOpen ? 90 : 0 }}
+  transition={{ duration: 0.3 }}
+>
+  {isOpen ? <X /> : <Menu />}
+</motion.div>
+```
+
+**6. Hover Effects**
+```typescript
+<motion.button
+  whileHover={{ scale: 1.1, rotate: 15 }}
+  whileTap={{ scale: 0.95 }}
+>
+  <Sparkles className="w-6 h-6" />
+</motion.button>
+```
+
+### Tailwind Built-in Animations
+
+**Available Classes:**
+```css
+animate-spin      /* Continuous rotation */
+animate-ping      /* Ping effect (scale + fade) */
+animate-pulse     /* Gentle opacity pulse */
+animate-bounce    /* Bounce up and down */
+```
+
+**Usage:**
+```tsx
+<Loader2 className="animate-spin" />
+<div className="animate-ping"><div className="w-4 h-4 bg-blue-500 rounded-full" /></div>
+<Heart className="animate-pulse text-red-500" />
+<ChevronDown className="animate-bounce" />
+```
+
+### Custom Tailwind Animations
+
+**Add to `tailwind.config.ts`:**
+```typescript
+module.exports = {
+  theme: {
+    extend: {
+      animation: {
+        'spin-slow': 'spin 3s linear infinite',
+        'wiggle': 'wiggle 1s ease-in-out infinite',
+        'fade-in': 'fadeIn 0.5s ease-in',
+        'slide-up': 'slideUp 0.5s ease-out',
+        'scale-in': 'scaleIn 0.3s ease-out',
+      },
+      keyframes: {
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(-3deg)' },
+          '50%': { transform: 'rotate(3deg)' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        scaleIn: {
+          '0%': { transform: 'scale(0.9)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+      },
+    },
+  },
+}
+```
+
+**Usage:**
+```tsx
+<Wand2 className="animate-wiggle text-purple-500" />
+<div className="animate-fade-in">
+  <Sparkles />
+</div>
+```
+
+---
+
+## 6.3 Icon Mapping for All Features
+
+### Feature Icons (Lucide React)
+
+**Blog Generation:**
+```typescript
+import {
+  Sparkles,      // AI magic
+  Wand2,         // Content generation
+  Brain,         // AI thinking
+  Zap,           // Fast generation
+  FileText,      // Blog article
+  PenTool,       // Writing
+  Lightbulb,     // Ideas
+  TrendingUp,    // SEO optimization
+} from 'lucide-react';
+```
+
+**Audio & Media:**
+```typescript
+import {
+  Mic,           // Recording/TTS
+  Volume2,       // Audio volume
+  Play,          // Play audio
+  Pause,         // Pause audio
+  Download,      // Download audio
+  Headphones,    // Listen
+  Music,         // Audio file
+  Speaker,       // Sound output
+} from 'lucide-react';
+```
+
+**Email & Communication:**
+```typescript
+import {
+  Mail,          // Email
+  Send,          // Send action
+  Inbox,         // Received
+  AtSign,        // Email address
+  CheckCircle,   // Success
+  AlertCircle,   // Warning
+  XCircle,       // Error
+} from 'lucide-react';
+```
+
+**Progress & Status:**
+```typescript
+import {
+  Loader2,       // Loading spinner
+  Clock,         // Time/waiting
+  TrendingUp,    // Progress
+  CheckCircle2,  // Completed
+  Circle,        // Pending
+  AlertTriangle, // Warning
+  Info,          // Information
+  HelpCircle,    // Help
+} from 'lucide-react';
+```
+
+**Actions & Controls:**
+```typescript
+import {
+  Copy,          // Copy to clipboard
+  Download,      // Download file
+  Share2,        // Share content
+  Trash2,        // Delete
+  Edit,          // Edit
+  Save,          // Save
+  RefreshCw,     // Refresh/regenerate
+  ArrowLeft,     // Back navigation
+  ExternalLink,  // Open external
+} from 'lucide-react';
+```
+
+**Navigation:**
+```typescript
+import {
+  Home,          // Home page
+  FileText,      // Blog/content
+  Settings,      // Settings
+  Menu,          // Menu toggle
+  X,             // Close
+  ChevronDown,   // Dropdown
+  ChevronRight,  // Next/forward
+  Search,        // Search
+  User,          // User profile
+} from 'lucide-react';
+```
+
+**Form & Input:**
+```typescript
+import {
+  Tag,           // Keywords/tags
+  Type,          // Text input
+  MessageSquare, // Comments/description
+  Sliders,       // Adjust settings
+  Eye,           // Preview
+  EyeOff,        // Hide
+  Filter,        // Filter options
+} from 'lucide-react';
+```
+
+---
+
+## 6.4 Project Structure
+
+```
+frontend/
+├── app/
+│   ├── page.tsx                      # Home/Landing page
+│   ├── generate/
+│   │   └── page.tsx                  # Blog Generator page
+│   ├── blog/
+│   │   └── [id]/
+│   │       └── page.tsx              # Blog View page
+│   ├── layout.tsx                    # Root layout
+│   ├── globals.css                   # Global styles
+│   └── favicon.ico
+│
+├── components/
+│   ├── ui/                           # shadcn/ui components
+│   │   ├── button.tsx
+│   │   ├── input.tsx
+│   │   ├── textarea.tsx
+│   │   ├── select.tsx
+│   │   ├── dialog.tsx
+│   │   ├── badge.tsx
+│   │   ├── card.tsx
+│   │   ├── progress.tsx
+│   │   ├── slider.tsx
+│   │   ├── skeleton.tsx
+│   │   └── toast.tsx
+│   │
+│   ├── BlogForm.tsx                  # Blog generation form
+│   ├── BlogPreview.tsx               # Article display component
+│   ├── AudioPlayer.tsx               # TTS audio player
+│   ├── EmailModal.tsx                # Send email dialog
+│   ├── LoadingStatus.tsx             # Real-time generation progress
+│   ├── Header.tsx                    # Navigation header
+│   ├── Footer.tsx                    # Footer component
+│   ├── AnimatedIcon.tsx              # Reusable animated icon wrapper
+│   └── StatusBadge.tsx               # Status indicator with icon
+│
+├── lib/
+│   ├── api.ts                        # Backend API client
+│   ├── types.ts                      # TypeScript types/interfaces
+│   ├── utils.ts                      # Utility functions
+│   └── constants.ts                  # App constants
+│
+├── hooks/
+│   ├── usePolling.ts                 # Polling hook for status
+│   ├── useClipboard.ts               # Copy to clipboard
+│   └── useLocalStorage.ts            # localStorage hook
+│
+├── public/
+│   └── assets/
+│       ├── logo.svg
+│       └── hero-bg.svg
+│
+├── .env.local                        # Environment variables
+├── tailwind.config.ts                # Tailwind configuration
+├── components.json                   # shadcn/ui config
+├── tsconfig.json                     # TypeScript config
+├── next.config.js                    # Next.js config
+└── package.json                      # Dependencies
+```
+
+---
+
+## 6.5 Page Development Specifications
+
+### Page 1: Home/Landing Page (`app/page.tsx`)
+
+**Layout:**
+```
+┌─────────────────────────────────────┐
+│         Header (Navigation)         │
+├─────────────────────────────────────┤
+│                                     │
+│         🎨 Hero Section             │
+│   "AI-Powered Blog Generation"      │
+│   [Animated gradient background]    │
+│   [CTA Button with icon]            │
+│                                     │
+├─────────────────────────────────────┤
+│                                     │
+│       ✨ Features Showcase          │
+│   [3-4 cards with animated icons]   │
+│   - AI Generation                   │
+│   - Google Search                   │
+│   - TTS Audio                       │
+│   - Email Delivery                  │
+│                                     │
+├─────────────────────────────────────┤
+│                                     │
+│      📝 Example Topics              │
+│   [Cards with topic suggestions]    │
+│   [Click to auto-fill generator]    │
+│                                     │
+├─────────────────────────────────────┤
+│            Footer                   │
+└─────────────────────────────────────┘
+```
+
+**Key Features:**
+- Animated gradient background (CSS or Framer Motion)
+- Hero section with fade-in animation
+- Feature cards with hover effects
+- Icons that animate on hover/scroll
+- CTA button with icon and pulse effect
+- Smooth scroll to sections
+
+**Icon Usage:**
+```tsx
+// Hero section
+<motion.div
+  initial={{ scale: 0 }}
+  animate={{ scale: 1 }}
+  transition={{ type: "spring", delay: 0.2 }}
+>
+  <Sparkles className="w-16 h-16 text-purple-500" />
+</motion.div>
+
+// Feature cards
+<Brain className="w-12 h-12 text-blue-500 animate-pulse" />
+<Zap className="w-12 h-12 text-yellow-500" />
+<Mic className="w-12 h-12 text-green-500" />
+<Mail className="w-12 h-12 text-red-500" />
+```
+
+---
+
+### Page 2: Blog Generator Page (`app/generate/page.tsx`)
+
+**Layout:**
+```
+┌─────────────────────────────────────┐
+│         Header (Navigation)         │
+├─────────────────────────────────────┤
+│                                     │
+│         📝 Blog Generator            │
+│                                     │
+│   ┌─────────────────────────────┐   │
+│   │  Form Fields:               │   │
+│   │  • Topic (input)            │   │
+│   │  • Keywords (tag input)     │   │
+│   │  • Target Audience          │   │
+│   │  • Additional Context       │   │
+│   │                             │   │
+│   │  Advanced Options:          │   │
+│   │  • Tone (select)            │   │
+│   │  • Style (select)           │   │
+│   │  • Word Count (slider)      │   │
+│   │  • Section Count            │   │
+│   │                             │   │
+│   │  [Generate Button] ✨       │   │
+│   └─────────────────────────────┘   │
+│                                     │
+│   OR (when generating)              │
+│                                     │
+│   ┌─────────────────────────────┐   │
+│   │  ⏳ Generation Progress      │   │
+│   │  [Progress Bar]             │   │
+│   │  🔍 Enhancing prompt...     │   │
+│   │  (Animated status)          │   │
+│   └─────────────────────────────┘   │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+**Key Features:**
+- Multi-step form with validation
+- Tag input for keywords (add/remove chips)
+- Slider for word count with live value
+- Collapsible advanced options
+- Real-time validation feedback
+- Loading state during generation
+- Auto-redirect when complete
+
+**Icon Usage:**
+```tsx
+// Form field icons
+<Tag className="w-4 h-4 text-gray-400" />
+<Type className="w-4 h-4 text-gray-400" />
+<MessageSquare className="w-4 h-4 text-gray-400" />
+<Sliders className="w-4 h-4 text-gray-400" />
+
+// Generate button
+<Button>
+  <Sparkles className="w-5 h-5 mr-2" />
+  Generate Blog
+</Button>
+
+// Loading state
+<Loader2 className="w-6 h-6 animate-spin" />
+```
+
+---
+
+### Page 3: Blog View Page (`app/blog/[id]/page.tsx`)
+
+**Layout:**
+```
+┌─────────────────────────────────────┐
+│         Header (Navigation)         │
+├─────────────────────────────────────┤
+│                                     │
+│   📄 Blog Article Title             │
+│   [Metadata badges]                 │
+│                                     │
+│   ┌─────────────────────────────┐   │
+│   │  Action Buttons:            │   │
+│   │  📧 Email  📋 Copy          │   │
+│   │  💾 Download  🔊 Audio      │   │
+│   │  🔄 Generate Another        │   │
+│   └─────────────────────────────┘   │
+│                                     │
+│   ┌─────────────────────────────┐   │
+│   │  🎤 Audio Player            │   │
+│   │  [Play/Pause | Progress]    │   │
+│   │  [Download Audio]           │   │
+│   └─────────────────────────────┘   │
+│                                     │
+│   📖 Introduction                   │
+│   [Formatted text]                  │
+│                                     │
+│   📑 Section 1                      │
+│   [Content...]                      │
+│                                     │
+│   📑 Section 2                      │
+│   [Content...]                      │
+│                                     │
+│   ✅ Conclusion                     │
+│   [Formatted text]                  │
+│                                     │
+│   🏷️ Keywords: [tag] [tag] [tag]  │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+**Key Features:**
+- Full article with beautiful typography
+- Action buttons with icons
+- Audio player with custom controls
+- Copy to clipboard functionality
+- Download as markdown
+- Email modal
+- Smooth scroll animations
+- Table of contents (optional)
+- Reading progress indicator
+
+**Icon Usage:**
+```tsx
+// Action buttons
+<Button><Mail className="w-4 h-4 mr-2" />Email</Button>
+<Button><Copy className="w-4 h-4 mr-2" />Copy</Button>
+<Button><Download className="w-4 h-4 mr-2" />Download</Button>
+<Button><RefreshCw className="w-4 h-4 mr-2" />Generate Another</Button>
+
+// Audio player
+<Button>{isPlaying ? <Pause /> : <Play />}</Button>
+<Volume2 className="w-5 h-5" />
+<Download className="w-5 h-5" />
+
+// Metadata
+<Clock className="w-4 h-4" />
+<FileText className="w-4 h-4" />
+<Tag className="w-4 h-4" />
+```
+
+---
+
+## 6.6 Component Development Specifications
+
+### Component 1: AnimatedIcon.tsx (Reusable Wrapper)
+
+**Purpose:** Reusable wrapper for animated icons
+
+```typescript
+import { motion } from 'framer-motion';
+import { LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface AnimatedIconProps {
+  Icon: LucideIcon;
+  animation?: 'spin' | 'bounce' | 'pulse' | 'wiggle' | 'scale';
+  className?: string;
+  size?: number;
+}
+
+export function AnimatedIcon({
+  Icon,
+  animation = 'pulse',
+  className,
+  size = 24
+}: AnimatedIconProps) {
+  const animations = {
+    spin: { rotate: 360 },
+    bounce: { y: [0, -10, 0] },
+    pulse: { scale: [1, 1.1, 1] },
+    wiggle: { rotate: [-5, 5, -5, 5, 0] },
+    scale: { scale: [0.8, 1.2, 1] },
+  };
+
+  return (
+    <motion.div
+      animate={animations[animation]}
+      transition={{
+        duration: animation === 'spin' ? 1 : 0.6,
+        repeat: Infinity,
+        ease: 'easeInOut'
+      }}
+      className={cn('inline-block', className)}
+    >
+      <Icon size={size} />
+    </motion.div>
+  );
+}
+
+// Usage
+<AnimatedIcon Icon={Sparkles} animation="pulse" size={32} />
+```
+
+---
+
+### Component 2: LoadingStatus.tsx (Real-time Progress)
+
+**Purpose:** Display generation progress with animated icons
+
+```typescript
+import { motion } from 'framer-motion';
+import { Loader2, Search, FileText, Mic, CheckCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+
+interface LoadingStatusProps {
+  stage: 'enhancing' | 'generating' | 'tts' | 'complete';
+  progress: number;
+}
+
+export function LoadingStatus({ stage, progress }: LoadingStatusProps) {
+  const stages = {
+    enhancing: {
+      icon: Search,
+      label: 'Enhancing prompt with AI research...',
+      color: 'text-blue-500',
+    },
+    generating: {
+      icon: FileText,
+      label: 'Generating blog with Google Search...',
+      color: 'text-purple-500',
+    },
+    tts: {
+      icon: Mic,
+      label: 'Creating audio narration...',
+      color: 'text-green-500',
+    },
+    complete: {
+      icon: CheckCircle,
+      label: 'Complete!',
+      color: 'text-emerald-500',
+    },
+  };
+
+  const currentStage = stages[stage];
+  const Icon = currentStage.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-2xl mx-auto p-8 bg-white rounded-xl shadow-lg"
+    >
+      <div className="flex items-center justify-center mb-6">
+        {stage === 'complete' ? (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring' }}
+          >
+            <CheckCircle className="w-16 h-16 text-green-500" />
+          </motion.div>
+        ) : (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          >
+            <Icon className={`w-16 h-16 ${currentStage.color}`} />
+          </motion.div>
+        )}
+      </div>
+
+      <h3 className="text-2xl font-semibold text-center mb-4">
+        {currentStage.label}
+      </h3>
+
+      <Progress value={progress} className="mb-4" />
+
+      <p className="text-center text-gray-500">
+        {progress}% complete • Estimated time: {Math.ceil((100 - progress) / 2)}s
+      </p>
+
+      {/* Stage indicators */}
+      <div className="flex justify-between mt-8">
+        {Object.entries(stages).map(([key, stageInfo]) => (
+          <div key={key} className="flex flex-col items-center">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                key === stage
+                  ? 'bg-blue-500 text-white'
+                  : progress >= getStageProgress(key)
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-200 text-gray-400'
+              }`}
+            >
+              <stageInfo.icon className="w-5 h-5" />
+            </div>
+            <span className="text-xs mt-2 text-gray-600">
+              {key.charAt(0).toUpperCase() + key.slice(1)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+```
+
+---
+
+### Component 3: AudioPlayer.tsx (TTS Playback)
+
+**Purpose:** Custom audio player with controls and animations
+
+```typescript
+import { useState, useRef, useEffect } from 'react';
+import { Play, Pause, Volume2, VolumeX, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { motion } from 'framer-motion';
+
+interface AudioPlayerProps {
+  audioUrl: string;
+  requestId: string;
+}
+
+export function AudioPlayer({ audioUrl, requestId }: AudioPlayerProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Audio control logic...
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 rounded-xl shadow-lg"
+    >
+      <audio ref={audioRef} src={audioUrl} />
+
+      <div className="flex items-center gap-4">
+        {/* Play/Pause button */}
+        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30"
+            onClick={() => setIsPlaying(!isPlaying)}
+          >
+            {isPlaying ? (
+              <Pause className="w-6 h-6 text-white" />
+            ) : (
+              <Play className="w-6 h-6 text-white" />
+            )}
+          </Button>
+        </motion.div>
+
+        {/* Progress bar */}
+        <div className="flex-1">
+          <Slider
+            value={[currentTime]}
+            max={duration}
+            step={0.1}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-white/80 mt-1">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+
+        {/* Volume control */}
+        <div className="flex items-center gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setIsMuted(!isMuted)}
+          >
+            {isMuted ? (
+              <VolumeX className="w-5 h-5 text-white" />
+            ) : (
+              <Volume2 className="w-5 h-5 text-white" />
+            )}
+          </Button>
+        </div>
+
+        {/* Download button */}
+        <Button size="icon" variant="ghost" asChild>
+          <a href={audioUrl} download={`blog-audio-${requestId}.wav`}>
+            <Download className="w-5 h-5 text-white" />
+          </a>
+        </Button>
+      </div>
+
+      {/* Waveform visualization (optional) */}
+      <div className="flex items-center justify-center gap-1 h-16 mt-4">
+        {Array.from({ length: 50 }).map((_, i) => (
+          <motion.div
+            key={i}
+            animate={{
+              scaleY: isPlaying ? [0.5, 1, 0.5] : 0.3,
+            }}
+            transition={{
+              duration: 0.5,
+              repeat: Infinity,
+              delay: i * 0.02,
+            }}
+            className="w-1 bg-white/60 rounded-full"
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+```
+
+---
+
+### Component 4: EmailModal.tsx (Send Email Dialog)
+
+**Purpose:** Modal for sending blog via email
+
+```typescript
+import { useState } from 'react';
+import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { motion } from 'framer-motion';
+import { api } from '@/lib/api';
+import toast from 'react-hot-toast';
+
+interface EmailModalProps {
+  requestId: string;
+}
+
+export function EmailModal({ requestId }: EmailModalProps) {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const handleSendEmail = async () => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await api.sendEmail(requestId, email);
+      setIsSuccess(true);
+      toast.success('Email sent successfully!');
+      setTimeout(() => setOpen(false), 2000);
+    } catch (error) {
+      toast.error('Failed to send email');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Mail className="w-4 h-4 mr-2" />
+          Send to Email
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Mail className="w-5 h-5 text-blue-500" />
+            Send Blog via Email
+          </DialogTitle>
+          <DialogDescription>
+            Enter your email address to receive this blog article
+          </DialogDescription>
+        </DialogHeader>
+
+        {isSuccess ? (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="flex flex-col items-center justify-center py-8"
+          >
+            <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+            <p className="text-lg font-semibold text-green-600">
+              Email sent successfully!
+            </p>
+          </motion.div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendEmail()}
+              />
+            </div>
+
+            <Button
+              onClick={handleSendEmail}
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                  </motion.div>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Send Email
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+---
+
+## 6.7 API Integration (`lib/api.ts`)
+
+```typescript
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+export interface ContentRequest {
+  topic: string;
+  keywords: string[];
+  targetAudience?: string;
+  additionalContext?: string;
+  options?: {
+    tone?: string;
+    style?: string;
+    wordCount?: number;
+    sectionCount?: number;
+  };
+}
+
+export interface BlogArticle {
+  id: string;
+  title: string;
+  introduction?: string;
+  sections: Array<{
+    heading: string;
+    content: string;
+    order: number;
+  }>;
+  conclusion?: string;
+  metadata: {
+    keywords: string[];
+    wordCount?: number;
+  };
+  generatedAt?: string;
+}
+
+export const api = {
+  // Generate blog
+  async generateBlog(data: ContentRequest) {
+    const response = await fetch(`${API_BASE_URL}/api/generate-content`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate blog');
+    }
+
+    return response.json() as Promise<{ id: string; status: string }>;
+  },
+
+  // Get blog status/content
+  async getBlog(requestId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/content/${requestId}`);
+
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error('Failed to fetch blog');
+
+    return response.json() as Promise<{
+      article: BlogArticle;
+      tts?: { available: boolean };
+    }>;
+  },
+
+  // Get audio URL
+  getAudioUrl(requestId: string) {
+    return `${API_BASE_URL}/api/audio/${requestId}`;
+  },
+
+  // Send email
+  async sendEmail(requestId: string, email: string) {
+    const response = await fetch(`${API_BASE_URL}/api/send-blog-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId, email }),
+    });
+
+    if (!response.ok) throw new Error('Failed to send email');
+
+    return response.json();
+  },
+};
+```
+
+---
+
+## 6.8 Custom Hooks
+
+### usePolling.ts (Poll for Blog Status)
+
+```typescript
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '@/lib/api';
+
+export function usePolling(requestId: string | null, interval = 2000) {
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!requestId) return;
+
+    try {
+      const result = await api.getBlog(requestId);
+      if (result) {
+        setData(result);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError('Failed to fetch blog');
+      setIsLoading(false);
+    }
+  }, [requestId]);
+
+  useEffect(() => {
+    if (!requestId) return;
+
+    setIsLoading(true);
+    fetchData();
+
+    const intervalId = setInterval(fetchData, interval);
+
+    return () => clearInterval(intervalId);
+  }, [requestId, interval, fetchData]);
+
+  return { data, isLoading, error };
+}
+```
+
+### useClipboard.ts (Copy to Clipboard)
+
+```typescript
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { CheckCircle } from 'lucide-react';
+
+export function useClipboard() {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      toast.success('Copied to clipboard!', {
+        icon: <CheckCircle className="text-green-500" />,
+      });
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      toast.error('Failed to copy');
+    }
+  };
+
+  return { isCopied, copyToClipboard };
+}
+```
+
+---
+
+## 6.9 Environment Configuration
+
+**File: `frontend/.env.local`**
+
+```bash
+# Backend API URL
+NEXT_PUBLIC_API_URL=http://localhost:3000
+
+# For production (set in Vercel):
+# NEXT_PUBLIC_API_URL=https://your-app.motia.cloud
+```
+
+---
+
+## 6.10 Implementation Steps & Timeline
+
+### Day 1: Project Setup & Basic Structure (4-5 hours)
+
+**Step 1: Initialize Project** (30 min)
+```bash
+npx create-next-app@latest frontend
+cd frontend
+```
+
+**Step 2: Install All Dependencies** (15 min)
+```bash
+# Icons & animations
+npm install lucide-react framer-motion react-icons @tabler/icons-react
+
+# shadcn/ui
+npx shadcn-ui@latest init
+npx shadcn-ui@latest add button input textarea select dialog badge card separator skeleton progress slider switch label tabs toast tooltip dropdown-menu
+
+# Forms & validation
+npm install react-hook-form zod @hookform/resolvers
+
+# Utilities
+npm install react-hot-toast clsx tailwind-merge nanoid date-fns
+```
+
+**Step 3: Configure Tailwind** (30 min)
+- Add custom animations to `tailwind.config.ts`
+- Set up color palette
+- Configure typography
+
+**Step 4: Create Project Structure** (30 min)
+- Create all folders: `components/`, `components/ui/`, `lib/`, `hooks/`
+- Set up `lib/api.ts`, `lib/types.ts`, `lib/utils.ts`
+- Create `.env.local`
+
+**Step 5: Build Header Component** (1 hour)
+- Logo, navigation, mobile menu
+- Animated icons for menu toggle
+
+**Step 6: Build Home Page** (2 hours)
+- Hero section with gradient background
+- Feature cards with animated icons
+- CTA button
+- Animations with Framer Motion
+
+---
+
+### Day 2: Generator Page & Form (5-6 hours)
+
+**Step 7: Build BlogForm Component** (3 hours)
+- Form fields with React Hook Form
+- Zod validation
+- Tag input for keywords
+- Slider for word count
+- Dropdowns for tone/style
+- Advanced options collapsible
+- Animated icons for each field
+
+**Step 8: Build LoadingStatus Component** (1 hour)
+- Real-time progress display
+- Animated stage indicators
+- Progress bar
+- Spinning/animated icons
+
+**Step 9: Create Generator Page** (1 hour)
+- Integrate BlogForm
+- Handle form submission
+- Show LoadingStatus during generation
+- Poll for completion
+- Redirect to blog view
+
+**Step 10: Build usePolling Hook** (30 min)
+- Polling logic
+- Error handling
+- Auto-stop when complete
+
+---
+
+### Day 3: Blog View Page & Components (5-6 hours)
+
+**Step 11: Build BlogPreview Component** (2 hours)
+- Article layout with typography
+- Section rendering
+- Markdown formatting
+- Keywords display
+- Metadata badges
+
+**Step 12: Build AudioPlayer Component** (2 hours)
+- Custom audio controls
+- Play/pause button with icon animation
+- Progress slider
+- Volume control
+- Download button
+- Waveform visualization (optional)
+
+**Step 13: Build EmailModal Component** (1 hour)
+- Dialog with form
+- Email validation
+- Send email API call
+- Success/error states with animated icons
+
+**Step 14: Build Blog View Page** (1 hour)
+- Integrate BlogPreview, AudioPlayer, EmailModal
+- Action buttons (copy, download, email)
+- Copy to clipboard functionality
+- Download markdown
+- Animations
+
+---
+
+### Day 4: Polish, Testing & Deployment (4-5 hours)
+
+**Step 15: Add Animations & Transitions** (2 hours)
+- Page transitions with Framer Motion
+- Component entrance animations
+- Hover effects on buttons/cards
+- Icon animations
+- Loading skeletons
+
+**Step 16: Responsive Design** (1 hour)
+- Test on mobile, tablet, desktop
+- Fix layout issues
+- Optimize touch interactions
+
+**Step 17: Error Handling & Edge Cases** (1 hour)
+- Error boundaries
+- Empty states
+- Loading states
+- Network error handling
+- Toast notifications
+
+**Step 18: Testing & Fixes** (1 hour)
+- Test complete workflow
+- Test audio playback
+- Test email sending
+- Test copy/download
+- Fix bugs
+
+**Step 19: Final Polish** (30 min)
+- Optimize animations
+- Check accessibility
+- Verify all icons
+- Clean up console warnings
+
+---
+
+## 6.11 Animated Icon Showcase
+
+### Icon Animation Examples by Use Case
+
+**1. Loading States**
+```tsx
+<Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+<RefreshCw className="w-6 h-6 animate-spin text-purple-500" />
+<Clock className="w-6 h-6 animate-pulse text-gray-500" />
+```
+
+**2. Success States**
+```tsx
+<motion.div
+  initial={{ scale: 0, rotate: -180 }}
+  animate={{ scale: 1, rotate: 0 }}
+  transition={{ type: "spring", stiffness: 200 }}
+>
+  <CheckCircle className="w-12 h-12 text-green-500" />
+</motion.div>
+```
+
+**3. Error States**
+```tsx
+<motion.div
+  animate={{ x: [-5, 5, -5, 5, 0] }}
+  transition={{ duration: 0.5 }}
+>
+  <AlertCircle className="w-8 h-8 text-red-500" />
+</motion.div>
+```
+
+**4. Interactive Buttons**
+```tsx
+<motion.button
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+>
+  <Sparkles className="w-5 h-5" />
+  Generate
+</motion.button>
+```
+
+**5. Notification Badges**
+```tsx
+<motion.div
+  animate={{ scale: [1, 1.2, 1] }}
+  transition={{ repeat: Infinity, duration: 2 }}
+>
+  <Bell className="w-6 h-6 text-red-500" />
+  <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />
+</motion.div>
+```
+
+**6. Menu Toggle**
+```tsx
+<motion.button
+  whileTap={{ rotate: 90 }}
+  transition={{ duration: 0.2 }}
+>
+  {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+</motion.button>
+```
+
+---
+
+## 6.12 Complete Package Reference
+
+### Final package.json Dependencies
+
+```json
+{
+  "dependencies": {
+    "@hookform/resolvers": "^3.9.0",
+    "@radix-ui/react-dialog": "^1.1.2",
+    "@radix-ui/react-dropdown-menu": "^2.1.2",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-select": "^2.1.2",
+    "@radix-ui/react-slider": "^1.2.1",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-tabs": "^1.1.1",
+    "@radix-ui/react-toast": "^1.2.2",
+    "@radix-ui/react-tooltip": "^1.1.4",
+    "@tabler/icons-react": "^3.14.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
+    "framer-motion": "^11.5.0",
+    "lucide-react": "^0.441.0",
+    "nanoid": "^5.0.7",
+    "next": "^15.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-hook-form": "^7.53.0",
+    "react-hot-toast": "^2.4.1",
+    "react-icons": "^5.3.0",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8",
+    "eslint-config-next": "^15.0.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
+```
+
+---
+
+## 🎯 Quick Start Command
+
+```bash
+# Run this in project root to start building the frontend:
+
+# Step 1: Create Next.js app
+npx create-next-app@latest frontend --typescript --tailwind --app --no-src-dir
+
+# Step 2: Navigate to frontend
+cd frontend
+
+# Step 3: Install all dependencies at once
+npm install lucide-react framer-motion react-icons @tabler/icons-react react-hook-form zod @hookform/resolvers react-hot-toast clsx tailwind-merge nanoid date-fns
+
+# Step 4: Initialize shadcn/ui
+npx shadcn@latest init
+
+
+# Step 5: Add all shadcn components
+npx shadcn-ui@latest add button input textarea select dialog dropdown-menu badge card separator skeleton progress slider switch label tabs toast tooltip
+
+# Step 6: Update package.json port
+# Edit package.json: "dev": "next dev -p 3001"
+
+# Step 7: Create .env.local
+echo "NEXT_PUBLIC_API_URL=http://localhost:3000" > .env.local
+
+# Step 8: Start development
+npm run dev
+```
+
+**Your frontend will be running at:** `http://localhost:3001` 🚀
+
+---
+
+**This completes the comprehensive frontend development plan with animated icons!** ✨
+
