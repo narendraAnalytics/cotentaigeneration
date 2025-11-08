@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Home,
   Sparkles,
@@ -10,7 +11,10 @@ import {
   Menu,
   X,
   Zap,
+  LogOut,
+  User as UserIcon,
 } from "lucide-react";
+import { useUser } from "@/lib/auth";
 
 const navItems = [
   {
@@ -50,6 +54,8 @@ const navItems = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const user = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,6 +64,19 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleGetStarted = () => {
+    if (user) {
+      router.push('/dashboard');
+    } else {
+      router.push('/handler/sign-in');
+    }
+  };
+
+  const handleSignOut = async () => {
+    await user?.signOut();
+    router.push('/');
+  };
 
   return (
     <motion.nav
@@ -135,36 +154,67 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6 }}
-            whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(147, 51, 234, 0.5)" }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden md:block relative px-6 py-2.5 rounded-xl font-semibold text-white overflow-hidden group"
-          >
-            {/* Animated gradient background */}
-            <div className="absolute inset-0 bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 group-hover:from-purple-500 group-hover:via-blue-500 group-hover:to-pink-500 transition-all duration-300" />
+          {/* CTA Button or User Menu */}
+          {user ? (
+            <div className="hidden md:flex items-center gap-3">
+              {/* User Avatar */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-100 via-blue-100 to-pink-100"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 flex items-center justify-center text-white font-semibold text-sm">
+                  {user.displayName?.[0]?.toUpperCase() || user.primaryEmail?.[0]?.toUpperCase() || "U"}
+                </div>
+                <span className="text-sm font-medium text-gray-700">
+                  {user.displayName || user.primaryEmail?.split("@")[0]}
+                </span>
+              </motion.div>
 
-            {/* Shimmer effect */}
-            <motion.div
-              className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent"
-              animate={{
-                x: ["-100%", "200%"],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                repeatDelay: 1,
-              }}
-            />
+              {/* Sign Out Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSignOut}
+                className="px-4 py-2 rounded-xl border-2 border-red-200 hover:border-red-400 text-red-600 font-semibold flex items-center gap-2 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </motion.button>
+            </div>
+          ) : (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6 }}
+              whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(147, 51, 234, 0.5)" }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleGetStarted}
+              className="hidden md:block relative px-6 py-2.5 rounded-xl font-semibold text-white overflow-hidden group"
+            >
+              {/* Animated gradient background */}
+              <div className="absolute inset-0 bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 group-hover:from-purple-500 group-hover:via-blue-500 group-hover:to-pink-500 transition-all duration-300" />
 
-            <span className="relative flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Get Started
-            </span>
-          </motion.button>
+              {/* Shimmer effect */}
+              <motion.div
+                className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent"
+                animate={{
+                  x: ["-100%", "200%"],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatDelay: 1,
+                }}
+              />
+
+              <span className="relative flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Get Started
+              </span>
+            </motion.button>
+          )}
 
           {/* Mobile Menu Button */}
           <motion.button
@@ -231,16 +281,50 @@ export default function Navbar() {
                 </motion.a>
               ))}
 
-              <motion.button
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: navItems.length * 0.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-full mt-2 px-4 py-3 rounded-xl font-semibold text-white bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 flex items-center justify-center gap-2"
-              >
-                <Sparkles className="w-4 h-4" />
-                Get Started
-              </motion.button>
+              {user ? (
+                <>
+                  {/* User Info */}
+                  <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: navItems.length * 0.1 }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-100 via-blue-100 to-pink-100"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 flex items-center justify-center text-white font-semibold">
+                      {user.displayName?.[0]?.toUpperCase() || user.primaryEmail?.[0]?.toUpperCase() || "U"}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800">{user.displayName || "User"}</p>
+                      <p className="text-xs text-gray-600">{user.primaryEmail}</p>
+                    </div>
+                  </motion.div>
+
+                  {/* Sign Out Button */}
+                  <motion.button
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: (navItems.length + 1) * 0.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleSignOut}
+                    className="w-full mt-2 px-4 py-3 rounded-xl font-semibold text-red-600 border-2 border-red-200 hover:border-red-400 flex items-center justify-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </motion.button>
+                </>
+              ) : (
+                <motion.button
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: navItems.length * 0.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleGetStarted}
+                  className="w-full mt-2 px-4 py-3 rounded-xl font-semibold text-white bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Get Started
+                </motion.button>
+              )}
             </div>
           </motion.div>
         )}

@@ -2,11 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { FileText, Mail, Lightbulb, Sparkles } from "lucide-react";
+import { useUser } from "@/lib/auth";
 
 export default function HeroSection() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const rotatingWords = ["Content", "Blogs", "Emails", "Posts"];
+  const user = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -15,6 +19,33 @@ export default function HeroSection() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleGetStarted = () => {
+    if (user) {
+      router.push('/dashboard');
+    } else {
+      router.push('/handler/sign-in');
+    }
+  };
+
+  // Get user's first name for personalized CTA
+  const getUserFirstName = () => {
+    if (!user) return null;
+
+    if (user.displayName) {
+      // Extract first name from display name
+      return user.displayName.split(' ')[0];
+    }
+
+    if (user.primaryEmail) {
+      // Extract name from email (part before @)
+      return user.primaryEmail.split('@')[0];
+    }
+
+    return 'there';
+  };
+
+  const firstName = getUserFirstName();
 
   return (
     <section id="home" className="relative flex min-h-screen w-full flex-col items-center justify-center px-4 sm:px-8 pt-20">
@@ -166,7 +197,8 @@ export default function HeroSection() {
           <motion.button
             whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(147, 51, 234, 0.3)" }}
             whileTap={{ scale: 0.95 }}
-            className="relative px-8 py-4 rounded-2xl font-bold text-lg text-white overflow-hidden group"
+            onClick={handleGetStarted}
+            className="relative px-8 py-4 rounded-2xl font-bold text-lg text-white overflow-hidden group cursor-pointer"
           >
             {/* Animated gradient background */}
             <div className="absolute inset-0 bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 group-hover:from-purple-500 group-hover:via-blue-500 group-hover:to-pink-500 transition-all duration-300" />
@@ -186,7 +218,7 @@ export default function HeroSection() {
 
             <span className="relative flex items-center gap-2 justify-center">
               <Sparkles className="w-5 h-5" />
-              Get Started Free
+              {user ? `Start Blog Post, ${firstName}` : 'Get Started Free'}
             </span>
           </motion.button>
         </motion.div>
@@ -198,7 +230,9 @@ export default function HeroSection() {
           transition={{ delay: 1, duration: 0.8 }}
           className="text-sm text-gray-500"
         >
-          No credit card required • Free forever • Join 10,000+ creators
+          {user
+            ? 'Ready to create? • AI-powered • With TTS Audio'
+            : 'No credit card required • Free forever • Join 10,000+ creators'}
         </motion.p>
       </div>
     </section>
