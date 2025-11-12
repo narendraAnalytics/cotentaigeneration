@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/auth";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FileText, Plus, Loader2, Music, Clock, Calendar } from "lucide-react";
+import CreateBlogForm, { BlogGenerationRequest } from "@/components/CreateBlogForm";
+import BlogReader from "@/components/BlogReader";
+import { generateBlog, pollBlogContent, BlogContentResponse } from "@/lib/api";
 
 interface BlogPost {
   id: string;
@@ -15,6 +18,7 @@ interface BlogPost {
   tone: string | null;
   audience: string | null;
   status: string;
+  audioData: string | null;
   audioUrl: string | null;
   audioDuration: number | null;
   audioFileSize: number | null;
@@ -28,6 +32,13 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState<{
+    attempt: number;
+    maxAttempts: number;
+  } | null>(null);
+  const [selectedBlog, setSelectedBlog] = useState<BlogContentResponse | null>(null);
 
   useEffect(() => {
     console.log('🔍 Dashboard loaded, user:', user);
@@ -44,11 +55,184 @@ export default function DashboardPage() {
           name: user.displayName
         });
         setIsLoading(false);
+        fetchUserPosts();
       }
     }, 1000);
 
     return () => clearTimeout(timer);
   }, [user, router]);
+
+  const fetchUserPosts = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`/api/blog-posts?userId=${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setPosts(data.posts || []);
+      } else {
+        console.error('Failed to fetch posts:', response.status, response.statusText);
+        // Don't crash, just show empty state
+        setPosts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      // Don't crash, just show empty state
+      setPosts([]);
+    }
+  };
+
+  const handleCreateBlog = async (formData: BlogGenerationRequest, email?: string) => {
+    try {
+      setIsGenerating(true);
+      setGenerationProgress({ attempt: 0, maxAttempts: 50 });
+
+      // Step 1: Start generation
+      console.log('🚀 Starting blog generation...');
+      console.log('📝 Request data:', formData);
+
+      const generateResponse = await generateBlog(formData);
+      console.log('✅ Generation started:', generateResponse.id);
+
+      // Step 2: Poll for completion
+      console.log('⏳ Waiting for blog + TTS generation...');
+      const blogContent = await pollBlogContent(
+        generateResponse.id,
+        50,
+        5000,
+        (attempt, maxAttempts) => {
+          setGenerationProgress({ attempt, maxAttempts });
+        }
+      );
+
+      console.log('✅ Blog generated successfully!');
+
+      // Step 3: Save to database
+      await saveBlogToDatabase(blogContent, formData);
+
+      // Step 4: Send email if provided
+      if (email) {
+        console.log('📧 Sending email to:', email);
+        // Optional: send email notification (can implement later)
+        // await sendBlogEmail(generateResponse.id, email);
+      }
+
+      // Step 5: Show blog reader
+      setSelectedBlog(blogContent);
+      setShowCreateForm(false);
+
+      // Refresh posts list
+      await fetchUserPosts();
+    } catch (error) {
+      console.error('❌ Error generating blog:', error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate blog. Please try again.'
+      );
+    } finally {
+      setIsGenerating(false);
+      setGenerationProgress(null);
+    }
+  };
+
+  const saveBlogToDatabase = async (
+    blogContent: BlogContentResponse,
+    formData: BlogGenerationRequest
+  ) => {
+    if (!user) return;
+
+    try {
+      // Generate description from first section or content
+      let description = '';
+      if (blogContent.article.sections && blogContent.article.sections.length > 0) {
+        description = blogContent.article.sections[0]?.content.substring(0, 200) || '';
+      } else {
+        // Fallback: use first 200 chars of content
+        description = blogContent.article.content.substring(0, 200);
+      }
+
+      const response = await fetch('/api/blog-posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          title: blogContent.article.title,
+          content: blogContent.article.content,
+          description,
+          tone: formData.options?.tone || 'professional',
+          audience: formData.targetAudience || '',
+          audioData: blogContent.audio?.audioData,
+          audioDuration: blogContent.audio
+            ? estimateAudioDuration(
+                blogContent.audio.audioData,
+                blogContent.audio.sampleRate,
+                blogContent.audio.channels
+              )
+            : null,
+          audioFileSize: blogContent.audio
+            ? Math.floor((blogContent.audio.audioData.length * 3) / 4)
+            : null,
+          audioStatus: blogContent.audio ? 'ready' : null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Database save error response:', errorData);
+        throw new Error(errorData.error || 'Failed to save blog to database');
+      }
+
+      console.log('✅ Blog saved to database');
+    } catch (error) {
+      console.error('Error saving blog:', error);
+      // Don't throw - just log, so user can still see the blog
+    }
+  };
+
+  const estimateAudioDuration = (
+    base64Data: string,
+    sampleRate: number,
+    channels: number
+  ): number => {
+    const audioBytes = (base64Data.length * 3) / 4;
+    const samples = audioBytes / 2;
+    return Math.floor(samples / (sampleRate * channels));
+  };
+
+  const handlePostClick = async (post: BlogPost) => {
+    // Convert saved post to BlogContentResponse format for the reader
+    const blogContent: BlogContentResponse = {
+      id: post.id,
+      status: 'completed',
+      article: {
+        title: post.title,
+        content: post.content,
+        wordCount: post.content.split(/\s+/).length,
+        sections: [],
+        metadata: {
+          topic: post.title,
+          keywords: [],
+          tone: post.tone || 'professional',
+          style: 'informative',
+        },
+      },
+      audio: post.audioData
+        ? {
+            audioData: post.audioData,
+            format: 'pcm',
+            sampleRate: 24000,
+            channels: 1,
+            generatedAt: post.createdAt,
+          }
+        : undefined,
+      generatedAt: post.createdAt,
+    };
+
+    setSelectedBlog(blogContent);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -104,11 +288,45 @@ export default function DashboardPage() {
           animate={{ opacity: 1, scale: 1 }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="mb-8 px-6 py-3 bg-linear-to-br from-purple-600 via-blue-600 to-pink-600 text-white rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow"
+          onClick={() => setShowCreateForm(true)}
+          disabled={isGenerating}
+          className="mb-8 px-6 py-3 bg-linear-to-br from-purple-600 via-blue-600 to-pink-600 text-white rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-5 h-5" />
           Create New Post
         </motion.button>
+
+        {/* Generation Progress */}
+        {isGenerating && generationProgress && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
+              <span className="font-semibold text-gray-800">
+                Generating your blog post...
+              </span>
+            </div>
+            <div className="text-sm text-gray-600 mb-2">
+              This includes prompt enhancement, content generation, and TTS audio
+              synthesis. Please wait...
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{
+                  width: `${(generationProgress.attempt / generationProgress.maxAttempts) * 100}%`,
+                }}
+                className="bg-linear-to-r from-purple-600 to-pink-600 h-2 rounded-full"
+              />
+            </div>
+            <div className="text-xs text-gray-500 mt-1 text-right">
+              {generationProgress.attempt} / {generationProgress.maxAttempts} attempts
+            </div>
+          </motion.div>
+        )}
 
         {/* Posts Grid */}
         {posts.length === 0 ? (
@@ -133,6 +351,7 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
+                onClick={() => handlePostClick(post)}
                 className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
               >
                 {/* Status Badge */}
@@ -181,6 +400,34 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Create Blog Form Modal */}
+      <AnimatePresence>
+        {showCreateForm && (
+          <CreateBlogForm
+            onClose={() => !isGenerating && setShowCreateForm(false)}
+            onSubmit={handleCreateBlog}
+            isGenerating={isGenerating}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Blog Reader Modal */}
+      <AnimatePresence>
+        {selectedBlog && (
+          <BlogReader
+            blog={{
+              title: selectedBlog.article.title,
+              content: selectedBlog.article.content,
+              description: selectedBlog.article.sections[0]?.content.substring(0, 200),
+              tone: selectedBlog.article.metadata.tone,
+              audience: selectedBlog.article.metadata.keywords.join(', '),
+              audio: selectedBlog.audio,
+            }}
+            onClose={() => setSelectedBlog(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

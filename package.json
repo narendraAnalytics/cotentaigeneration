@@ -13,6 +13,7 @@
   ],
   "dependencies": {
     "@google/genai": "^1.28.0",
+    "lamejs": "^1.2.1",
     "motia": "^0.8.3-beta.140",
     "resend": "^6.4.0",
     "zod": "^3.24.4"

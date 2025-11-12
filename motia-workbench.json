@@ -16,12 +16,16 @@
     "id": "content-generation",
     "config": {
       "steps\\send-blog-email.step.ts": {
-        "x": 646,
-        "y": -108
+        "x": 341,
+        "y": -275
       },
       "steps\\get-content.step.ts": {
         "x": -47,
         "y": -151
+      },
+      "steps\\get-audio.step.ts": {
+        "x": 342,
+        "y": -55
       },
       "steps\\generate-tts.step.ts": {
         "x": 630,
@@ -38,10 +42,6 @@
       "steps\\enhance-prompt.step.ts": {
         "x": -692,
         "y": -216
-      },
-      "steps\\get-audio.step.ts": {
-        "x": 0,
-        "y": 448
       }
     }
   }

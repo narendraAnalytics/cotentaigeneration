@@ -40,6 +40,7 @@ export const blogPosts = pgTable('blog_posts', {
   status: varchar('status', { length: 50 }).default('draft').notNull(),
 
   // Audio file fields
+  audioData: text('audio_data'), // Base64 encoded audio data
   audioUrl: text('audio_url'),
   audioDuration: integer('audio_duration'),
   audioFileSize: integer('audio_file_size'),

@@ -9,7 +9,7 @@ export default function Home() {
       {/* Features Section - Placeholder */}
       <section id="features" className="min-h-screen w-full flex items-center justify-center px-8 bg-white/30">
         <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold bg-linear-to-br from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent mb-4">
             Features
           </h2>
           <p className="text-xl text-gray-600">Coming soon...</p>
@@ -19,7 +19,7 @@ export default function Home() {
       {/* Pricing Section - Placeholder */}
       <section id="pricing" className="min-h-screen w-full flex items-center justify-center px-8">
         <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold bg-linear-to-br from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent mb-4">
             Pricing
           </h2>
           <p className="text-xl text-gray-600">Coming soon...</p>
@@ -29,7 +29,7 @@ export default function Home() {
       {/* Contact Section - Placeholder */}
       <section id="contact" className="min-h-screen w-full flex items-center justify-center px-8 bg-white/30">
         <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold bg-linear-to-b from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent mb-4">
             Contact
           </h2>
           <p className="text-xl text-gray-600">Coming soon...</p>

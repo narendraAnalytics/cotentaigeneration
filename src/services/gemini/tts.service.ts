@@ -13,7 +13,7 @@ interface TTSServiceConfig {
  * TTS Generation Result
  */
 export interface TTSResult {
-  audioData: string; // Base64 encoded audio
+  audioData: string; // Base64 encoded PCM audio
   format: 'pcm';
   sampleRate: 24000;
   channels: 1;
@@ -39,46 +39,83 @@ export class GeminiTTSService {
   }
 
   /**
-   * Generate speech from text using Gemini TTS
-   * @param text The text to convert to speech
-   * @returns Base64 encoded audio data
+   * Sleep helper for retry delays
    */
-  async generateSpeech(text: string): Promise<TTSResult> {
-    try {
-      if (!text || text.trim().length === 0) {
-        throw new Error('Text cannot be empty');
-      }
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
-      const response = await this.ai.models.generateContent({
-        model: this.model,
-        contents: [{ parts: [{ text }] }],
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: this.voiceName },
+  /**
+   * Generate speech from text using Gemini TTS
+   * Includes retry logic with exponential backoff for rate limit errors
+   * @param text The text to convert to speech
+   * @returns Base64 encoded PCM audio data
+   */
+  async generateSpeech(text: string, maxRetries: number = 3): Promise<TTSResult> {
+    if (!text || text.trim().length === 0) {
+      throw new Error('Text cannot be empty');
+    }
+
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await this.ai.models.generateContent({
+          model: this.model,
+          contents: [{ parts: [{ text }] }],
+          config: {
+            responseModalities: [Modality.AUDIO],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: this.voiceName },
+              },
             },
           },
-        },
-      });
+        });
 
-      const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        const pcmAudioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
 
-      if (!audioData) {
-        throw new Error('No audio data received from the Gemini TTS API');
+        if (!pcmAudioData) {
+          throw new Error('No audio data received from the Gemini TTS API');
+        }
+
+        // Return raw PCM data directly (no conversion needed)
+        return {
+          audioData: pcmAudioData,
+          format: 'pcm',
+          sampleRate: 24000,
+          channels: 1,
+        };
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+        const errorMessage = lastError.message.toLowerCase();
+
+        // Check if it's a rate limit or overload error
+        const isRateLimitError =
+          errorMessage.includes('overloaded') ||
+          errorMessage.includes('rate limit') ||
+          errorMessage.includes('503') ||
+          errorMessage.includes('service unavailable');
+
+        if (isRateLimitError && attempt < maxRetries) {
+          // Exponential backoff: 2s, 4s, 8s
+          const delayMs = Math.pow(2, attempt) * 1000;
+          console.warn(
+            `TTS API rate limit hit (attempt ${attempt}/${maxRetries}). Retrying in ${delayMs}ms...`
+          );
+          await this.sleep(delayMs);
+          continue;
+        }
+
+        // If not a rate limit error or we're out of retries, throw
+        throw new Error(
+          `Gemini TTS API error: ${lastError.message} (failed after ${attempt} attempts)`
+        );
       }
-
-      return {
-        audioData,
-        format: 'pcm',
-        sampleRate: 24000,
-        channels: 1,
-      };
-    } catch (error) {
-      throw new Error(
-        `Gemini TTS API error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
     }
+
+    // This should never be reached, but TypeScript needs it
+    throw lastError || new Error('Unknown error in TTS generation');
   }
 
   /**

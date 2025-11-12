@@ -102,6 +102,10 @@ export const handler: Handlers['GenerateTTS'] = async (input, { logger, state })
       generatedAt: new Date().toISOString()
     });
 
-    throw error; // Re-throw to trigger retry mechanisms if configured
+    // DON'T throw - let the blog generation succeed even if TTS fails
+    // The user can still read the blog, just without audio
+    logger.warn('TTS generation failed, but blog content is still available', {
+      requestId
+    });
   }
 };

@@ -5,8 +5,19 @@
  * 1. Generates a blog article
  * 2. Waits for both blog AND TTS audio generation
  * 3. Displays blog and audio information
- * 4. Optionally saves audio to file
+ * 4. Saves audio to .pcm file (for debugging)
  * 5. Sends blog to your email
+ *
+ * AUDIO PLAYBACK:
+ * - The frontend (http://localhost:3000/dashboard) has a built-in audio player
+ * - Generated blogs appear in your dashboard with a play button
+ * - Audio plays directly in the browser using Web Audio API
+ * - No need for FFmpeg or external tools!
+ *
+ * The .pcm file saved here is for debugging only. To listen to audio:
+ * → Open http://localhost:3000/dashboard in your browser
+ * → Click on any blog post card
+ * → Use the audio player controls to play/pause
  *
  * Run with: node test-complete-workflow-with-tts.js YOUR_EMAIL@example.com
  */
@@ -15,19 +26,18 @@ const fs = require('fs');
 const BASE_URL = 'http://localhost:3000';
 
 const testRequest = {
-  topic: "Evaluation of AI Changing the Software Developers Position",
+  topic: "AI in Healthcare Robotics in Operations",
   keywords: [
     "AI",
-    "software developers",
-    "developer jobs",
+    "healthcare",
     "automation",
-    "AI coding tools",
+    "robotics",
     "programming future",
-    "GitHub Copilot",
-    "job security"
+    "operations",
+    "medical AI"
   ],
-  targetAudience: "Software developers and tech professionals",
-  additionalContext: "Focus on how AI tools like GitHub Copilot, ChatGPT, and AI code generation are transforming the role of software developers, job security concerns, and new opportunities",
+  targetAudience: "Healthcare professionals, medical administrators, and tech-savvy medical practitioners",
+  additionalContext: "Focus on how AI-powered robotics are transforming surgical procedures, hospital operations, patient care automation, and the future of medical technology in operating rooms",
   options: {
     tone: "professional",
     style: "informative",
@@ -217,15 +227,18 @@ async function testCompleteWorkflowWithTTS() {
       console.log('   Generated At:', new Date(audio.generatedAt).toLocaleString());
 
       // Option to save audio
-      console.log('\n💾 Audio file available!');
-      console.log('   To save audio to file, you can extract it from the API response.');
+      console.log('\n💾 Audio file saved for debugging');
       console.log('   The audio is base64-encoded PCM (24kHz, 16-bit, mono).');
 
       // Auto-save for testing
       try {
         const filename = saveAudioToFile(audio.audioData, requestId);
         console.log(`   ✅ Audio saved to: ${filename}`);
-        console.log(`   🔊 To play (requires FFmpeg):`);
+        console.log(`\n   🎧 To listen to audio (RECOMMENDED):`);
+        console.log(`      → Open http://localhost:3000/dashboard in your browser`);
+        console.log(`      → Your blog will appear in the dashboard`);
+        console.log(`      → Click on it to open the reader with audio player`);
+        console.log(`\n   🔊 Alternative: Play .pcm file with FFmpeg:`);
         console.log(`      ffplay -f s16le -ar 24000 -ac 1 ${filename}`);
       } catch (error) {
         console.log('   ⚠️  Could not auto-save audio:', error.message);
@@ -266,8 +279,8 @@ async function testCompleteWorkflowWithTTS() {
       if (ttsReady) {
         console.log('\n🎧 Next steps:');
         console.log('   • Check your email for the blog article');
-        console.log('   • Use the saved .pcm file to play audio');
-        console.log('   • Integrate audio playback in your frontend');
+        console.log('   • Open http://localhost:3000/dashboard to listen to audio in browser');
+        console.log('   • The audio player is already integrated and ready to use!');
       }
     } else {
       console.log('\n⚠️  Blog and TTS generated, but email failed');
