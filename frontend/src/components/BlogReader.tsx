@@ -13,6 +13,7 @@ import {
   Download,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import AudioWaveform from "./AudioWaveform";
 
 interface BlogReaderProps {
   blog: {
@@ -406,6 +407,9 @@ export default function BlogReader({ blog, onClose }: BlogReaderProps) {
                   <Play className="w-6 h-6 ml-1" />
                 )}
               </button>
+
+              {/* Animated Waveform */}
+              <AudioWaveform isPlaying={isPlaying} />
 
               {/* Skip Backward */}
               <button

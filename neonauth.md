@@ -43,12 +43,12 @@ Complete step-by-step guide for setting up Neon Auth with automatic user synchro
 
 ```
 User Signs Up/In (Stack Auth UI)
-        �
+        �
 Neon Auth Auto-Syncs
-        �
+        �
 neon_auth.users_sync table (PostgreSQL)
-        �
-Your App Tables (blog_posts, etc.) � FK to users_sync
+        �
+Your App Tables (blog_posts, etc.) � FK to users_sync
 ```
 
 ---
@@ -112,7 +112,7 @@ CREATE TABLE neon_auth.users_sync (
 );
 ```
 
-� **Important**: Do NOT modify this table manually. Neon Auth manages it automatically.
+� **Important**: Do NOT modify this table manually. Neon Auth manages it automatically.
 
 ### 2.3 Get Your Auth Keys
 
@@ -241,7 +241,7 @@ export const neonAuthSchema = pgSchema('neon_auth');
 
 /**
  * Neon Auth Users Sync Table (Read-Only Reference)
- * � DO NOT MODIFY - Automatically synced by Neon Auth
+ * � DO NOT MODIFY - Automatically synced by Neon Auth
  * Users appear here automatically when they sign up
  */
 export const neonAuthUsers = neonAuthSchema.table('users_sync', {
@@ -457,7 +457,7 @@ npm run dev
 4. You should see your user listed
 
 **Option 2: SQL Editor**
-1. Go to Neon Console � **SQL Editor**
+1. Go to Neon Console � **SQL Editor**
 2. Run:
    ```sql
    SELECT * FROM neon_auth.users_sync;
@@ -475,7 +475,7 @@ WHERE table_schema IN ('public', 'neon_auth');
 -- Check foreign key constraint
 SELECT
   con.conname AS constraint_name,
-  'blog_posts � neon_auth.users_sync' AS relationship
+  'blog_posts � neon_auth.users_sync' AS relationship
 FROM pg_constraint con
 WHERE con.conname = 'blog_posts_user_id_users_sync_id_fk';
 ```
@@ -488,13 +488,13 @@ WHERE con.conname = 'blog_posts_user_id_users_sync_id_fk';
 
 ```
 1. User signs up via Stack Auth UI (/handler/sign-up)
-        �
+        �
 2. Stack Auth creates user account
-        �
+        �
 3. Neon Auth detects new user
-        �
+        �
 4. Neon Auth automatically inserts user into neon_auth.users_sync
-        �
+        �
 5. Your app can immediately use the user in queries!
 ```
 
@@ -547,7 +547,7 @@ const newPost = await db.insert(blogPosts).values({
 ### Users Not Appearing in neon_auth.users_sync
 
 **Check:**
-1.  Neon Auth is enabled in Neon Console � Auth page
+1.  Neon Auth is enabled in Neon Console � Auth page
 2.  Using Neon Auth keys (not separate Stack project keys)
 3.  DATABASE_URL points to the same database where Neon Auth is enabled
 4.  User completed sign-up flow (check email verification if required)
@@ -691,3 +691,33 @@ You now have:
 **Created:** 2025
 **Last Updated:** Based on Neon Auth + Stack Auth integration
 **Project:** AI Copywriting Platform with Next.js + Neon + Drizzle
+
+
+------------------------------------------------------------
+
+
+Text Highlighting During Playback                                               │
+     │   - Highlight current sentence/paragraph being read (karaoke-style)                │
+     │   - Auto-scroll to follow narration                                                │
+     │ 3. Enhanced Audio Player Design                                                    │
+     │   - Add animated gradient progress bar (matches your theme)                        │
+     │   - Pulsing play button animation                                                  │
+     │   - Visual equalizer bars
+
+      4   Playback Speed Control                                                          │
+     │   - 0.5x,  0.75x, 1x, 1.25x, 1.5x, 2x speed options                                 │
+     │   - Helps users consume content faster/slower                                      │
+     │ 5. Chapter/Section Navigation                                                      │
+     │   - Jump to specific headings from audio player                                    │
+     │   - Show current section being read                                                │
+     │ 6. Reading Progress Indicator                                                      │
+     │   - Percentage completed                                                           │
+     │   - Visual progress ring around play button                                        │
+     │ 7. Keyboard Shortcuts                                                              │
+     │   - Space = play/pause                                                             │
+     │   - Arrow keys = skip forward/backward                                             │
+     │   - Show shortcut hints on hover         
+
+ Auto-play Indicator                                                             │
+     │   - Smooth fade-in animation when audio starts                                     │
+     │   - "Now playing" badge with pulse effect       
