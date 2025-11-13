@@ -394,8 +394,10 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02, y: -8 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => handlePostClick(post)}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+                className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
               >
                 {/* Status Badge */}
                 <div className="flex items-center justify-between mb-4">
@@ -414,7 +416,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">
+                <h3 className="text-xl font-bold bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-2 line-clamp-2">
                   {post.title}
                 </h3>
 

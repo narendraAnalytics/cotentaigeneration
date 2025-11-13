@@ -8,6 +8,7 @@ import { useUser } from "@/lib/auth";
 
 export default function HeroSection() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [isNavigating, setIsNavigating] = useState(false);
   const rotatingWords = ["Content", "Blogs", "Emails", "Posts"];
   const user = useUser();
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function HeroSection() {
   }, []);
 
   const handleGetStarted = () => {
+    setIsNavigating(true);
     if (user) {
       router.push('/dashboard');
     } else {
@@ -156,7 +158,7 @@ export default function HeroSection() {
           transition={{ duration: 0.8 }}
         >
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-tight">
-            <span className="bg-linear-to-br from-purple-600 via-cyan-400 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
               Transform Ideas into{" "}
             </span>
             <span className="inline-block relative">
@@ -173,7 +175,7 @@ export default function HeroSection() {
                 </motion.span>
               </AnimatePresence>
             </span>
-            <span className="bg-linear-to-br from-purple-600 via-cyan-400 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
               {" "}with AI
             </span>
           </h1>
@@ -217,7 +219,16 @@ export default function HeroSection() {
             />
 
             <span className="relative flex items-center gap-2 justify-center">
-              <Sparkles className="w-5 h-5" />
+              <motion.div
+                animate={{ rotate: isNavigating ? 360 : 0 }}
+                transition={{
+                  duration: 0.6,
+                  repeat: isNavigating ? Infinity : 0,
+                  ease: "linear"
+                }}
+              >
+                <Sparkles className="w-5 h-5" />
+              </motion.div>
               {user ? `Start Blog Post, ${firstName}` : 'Get Started Free'}
             </span>
           </motion.button>

@@ -54,6 +54,7 @@ const navItems = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const user = useUser();
   const router = useRouter();
   const pathname = usePathname();
@@ -70,6 +71,7 @@ export default function Navbar() {
   }, []);
 
   const handleGetStarted = () => {
+    setIsNavigating(true);
     if (user) {
       router.push('/dashboard');
     } else {
@@ -252,7 +254,16 @@ export default function Navbar() {
                 />
 
                 <span className="relative flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
+                  <motion.div
+                    animate={{ rotate: isNavigating ? 360 : 0 }}
+                    transition={{
+                      duration: 0.6,
+                      repeat: isNavigating ? Infinity : 0,
+                      ease: "linear"
+                    }}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                  </motion.div>
                   Get Started
                 </span>
               </motion.button>
@@ -390,7 +401,16 @@ export default function Navbar() {
                     onClick={handleGetStarted}
                     className="w-full mt-2 px-4 py-3 rounded-xl font-semibold text-white bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 flex items-center justify-center gap-2"
                   >
-                    <Sparkles className="w-4 h-4" />
+                    <motion.div
+                      animate={{ rotate: isNavigating ? 360 : 0 }}
+                      transition={{
+                        duration: 0.6,
+                        repeat: isNavigating ? Infinity : 0,
+                        ease: "linear"
+                      }}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                    </motion.div>
                     Get Started
                   </motion.button>
                 )
