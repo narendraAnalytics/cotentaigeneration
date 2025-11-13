@@ -106,6 +106,7 @@ export default function DashboardPage() {
       );
 
       console.log('✅ Blog generated successfully!');
+      console.log('📦 Blog content received:', JSON.stringify(blogContent, null, 2));
 
       // Step 3: Save to database
       await saveBlogToDatabase(blogContent, formData);
@@ -140,55 +141,97 @@ export default function DashboardPage() {
     blogContent: BlogContentResponse,
     formData: BlogGenerationRequest
   ) => {
-    if (!user) return;
+    if (!user) {
+      console.error('❌ Cannot save: user not authenticated');
+      return;
+    }
 
     try {
+      // Log the structure we're working with
+      console.log('💾 Preparing to save to database...');
+      console.log('User ID:', user.id);
+      console.log('Article data:', {
+        hasArticle: !!blogContent.article,
+        hasTitle: !!blogContent.article?.title,
+        hasContent: !!blogContent.article?.content,
+        hasSections: !!blogContent.article?.sections,
+        hasFullContent: !!(blogContent as any).fullContent
+      });
+
+      // Extract title and content with fallbacks
+      const title = blogContent.article?.title ||
+                   formData.topic ||
+                   'Untitled Blog Post';
+
+      // Use article.content if available, otherwise use fullContent from API
+      const content = blogContent.article?.content ||
+                     (blogContent as any).fullContent ||
+                     '';
+
+      if (!content) {
+        console.error('❌ No content found in blog response');
+        throw new Error('Blog content is missing');
+      }
+
       // Generate description from first section or content
       let description = '';
-      if (blogContent.article.sections && blogContent.article.sections.length > 0) {
-        description = blogContent.article.sections[0]?.content.substring(0, 200) || '';
-      } else {
-        // Fallback: use first 200 chars of content
-        description = blogContent.article.content.substring(0, 200);
+      if (blogContent.article?.sections && blogContent.article.sections.length > 0) {
+        description = blogContent.article.sections[0]?.content?.substring(0, 200) || '';
       }
+
+      if (!description && content) {
+        // Fallback: use first 200 chars of content
+        description = content.substring(0, 200);
+      }
+
+      const payload = {
+        userId: user.id,
+        title,
+        content,
+        description,
+        tone: formData.options?.tone || 'professional',
+        audience: formData.targetAudience || '',
+        audioData: blogContent.audio?.audioData || null,
+        audioDuration: blogContent.audio
+          ? estimateAudioDuration(
+              blogContent.audio.audioData,
+              blogContent.audio.sampleRate,
+              blogContent.audio.channels
+            )
+          : null,
+        audioFileSize: blogContent.audio
+          ? Math.floor((blogContent.audio.audioData.length * 3) / 4)
+          : null,
+        audioStatus: blogContent.audio ? 'ready' : null,
+      };
+
+      console.log('📤 Sending to database:', {
+        userId: payload.userId,
+        title: payload.title,
+        contentLength: payload.content.length,
+        hasAudio: !!payload.audioData
+      });
 
       const response = await fetch('/api/blog-posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userId: user.id,
-          title: blogContent.article.title,
-          content: blogContent.article.content,
-          description,
-          tone: formData.options?.tone || 'professional',
-          audience: formData.targetAudience || '',
-          audioData: blogContent.audio?.audioData,
-          audioDuration: blogContent.audio
-            ? estimateAudioDuration(
-                blogContent.audio.audioData,
-                blogContent.audio.sampleRate,
-                blogContent.audio.channels
-              )
-            : null,
-          audioFileSize: blogContent.audio
-            ? Math.floor((blogContent.audio.audioData.length * 3) / 4)
-            : null,
-          audioStatus: blogContent.audio ? 'ready' : null,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Database save error response:', errorData);
+        console.error('❌ Database save error response:', errorData);
         throw new Error(errorData.error || 'Failed to save blog to database');
       }
 
-      console.log('✅ Blog saved to database');
+      const result = await response.json();
+      console.log('✅ Blog saved to database:', result);
     } catch (error) {
-      console.error('Error saving blog:', error);
+      console.error('❌ Error saving blog:', error);
       // Don't throw - just log, so user can still see the blog
+      alert('Warning: Blog generated successfully but failed to save to database. You can still read it below.');
     }
   };
 
@@ -417,11 +460,17 @@ export default function DashboardPage() {
         {selectedBlog && (
           <BlogReader
             blog={{
-              title: selectedBlog.article.title,
-              content: selectedBlog.article.content,
-              description: selectedBlog.article.sections[0]?.content.substring(0, 200),
-              tone: selectedBlog.article.metadata.tone,
-              audience: selectedBlog.article.metadata.keywords.join(', '),
+              title: selectedBlog.article?.title || 'Untitled',
+              content: selectedBlog.article?.content ||
+                      (selectedBlog as any).fullContent ||
+                      'Content not available',
+              description: selectedBlog.article?.sections?.[0]?.content?.substring(0, 200) ||
+                          selectedBlog.article?.introduction?.substring(0, 200) ||
+                          '',
+              tone: selectedBlog.article?.metadata?.tone || 'professional',
+              audience: selectedBlog.article?.metadata?.keywords?.join(', ') ||
+                       selectedBlog.article?.metadata?.targetAudience ||
+                       '',
               audio: selectedBlog.audio,
             }}
             onClose={() => setSelectedBlog(null)}

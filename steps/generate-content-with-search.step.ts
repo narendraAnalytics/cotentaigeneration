@@ -8,7 +8,7 @@ import { BlogArticle, ArticleSection, GenerationOptionsSchema } from '../src/typ
  * Receives enhanced data from Event Step 1 (enhance-prompt)
  */
 const GenerateContentInputSchema = z.object({
-  requestId: z.string().uuid(),
+  requestId: z.string(),
   originalRequest: z.object({
     topic: z.string(),
     keywords: z.array(z.string()),

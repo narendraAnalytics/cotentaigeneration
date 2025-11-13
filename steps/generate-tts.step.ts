@@ -7,7 +7,7 @@ import { createGeminiTTSService } from '../src/services/gemini/tts.service';
  * Receives request ID after blog content is generated
  */
 const GenerateTTSInputSchema = z.object({
-  requestId: z.string().uuid()
+  requestId: z.string()
 });
 
 /**

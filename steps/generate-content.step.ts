@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto';
  * Response schemas for the API endpoint
  */
 const AcceptedResponseSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   status: z.string(),
   message: z.string()
 });

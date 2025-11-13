@@ -7,7 +7,7 @@ import { createResendEmailService } from '../src/services/email/resend.service';
  * Request schema for sending blog email
  */
 const SendEmailRequestSchema = z.object({
-  requestId: z.string().uuid().describe('The ID of the generated blog article'),
+  requestId: z.string().describe('The ID of the generated blog article'),
   email: z.string().email().describe('Valid email address to send the blog to')
 });
 

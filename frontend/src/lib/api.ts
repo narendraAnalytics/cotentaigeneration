@@ -149,6 +149,8 @@ export async function pollBlogContent(
   onProgress?: (attempt: number, maxAttempts: number) => void
 ): Promise<BlogContentResponse> {
   let attempts = 0;
+  let blogReady = false;
+  let ttsReady = false;
 
   while (attempts < maxAttempts) {
     attempts++;
@@ -160,11 +162,29 @@ export async function pollBlogContent(
     const content = await getBlogContent(requestId);
 
     if (content) {
-      return content;
+      blogReady = true;
+
+      // Check if TTS audio is also ready
+      if (content.audio && content.audio.audioData) {
+        ttsReady = true;
+        console.log('✅ BOTH blog and TTS audio ready!');
+        return content;
+      } else {
+        // Blog is ready, but TTS still generating
+        console.log(`📝 Blog ready, waiting for TTS audio... (attempt ${attempts}/${maxAttempts})`);
+      }
     }
 
     // Wait before next attempt
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+
+  // Timeout reached
+  if (blogReady && !ttsReady) {
+    throw new Error(
+      `Blog generated successfully, but TTS audio timed out after ${maxAttempts} attempts. ` +
+      `You can still view the blog, but audio may not be available.`
+    );
   }
 
   throw new Error(

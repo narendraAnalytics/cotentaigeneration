@@ -1,58 +1,4 @@
-gemini.ts 
-
-------------
-import { GoogleGenAI, Modality } from "@google/genai";
-
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-export async function generateBlogPost(topic: string): Promise<string> {
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `Write a compelling and informative blog post about "${topic}". The post should be well-structured, engaging for a general audience, and approximately 400-500 words long.`,
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error generating blog post:", error);
-    throw new Error("Failed to generate blog post. Please try again.");
-  }
-}
-
-export async function generateSpeech(text: string): Promise<string> {
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-tts",
-      contents: [{ parts: [{ text }] }],
-      config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: "Kore" },
-          },
-        },
-      },
-    });
-
-    const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!audioData) {
-      throw new Error("No audio data received from the API.");
-    }
-    return audioData;
-  } catch (error) {
-    console.error("Error generating speech:", error);
-    throw new Error("Failed to synthesize audio. Please try again.");
-  }
-}
-------------
-
-
-audio.ts
-
---------------
+audioUtils.ts
 
 export function decode(base64: string): Uint8Array {
   const binaryString = atob(base64);
@@ -68,10 +14,9 @@ export async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
   sampleRate: number,
-  numChannels: number
+  numChannels: number,
 ): Promise<AudioBuffer> {
-  // The API returns raw PCM data. We need to convert it into a format that Web Audio API can use.
-  // The data is signed 16-bit PCM, little-endian.
+  // The API returns raw PCM data. We need to convert it from Int16 to Float32.
   const dataInt16 = new Int16Array(data.buffer);
   const frameCount = dataInt16.length / numChannels;
   const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
@@ -79,180 +24,298 @@ export async function decodeAudioData(
   for (let channel = 0; channel < numChannels; channel++) {
     const channelData = buffer.getChannelData(channel);
     for (let i = 0; i < frameCount; i++) {
-      // Normalize the 16-bit PCM data to the range [-1.0, 1.0]
+      // Normalize the Int16 value to the Float32 range [-1.0, 1.0]
       channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
     }
   }
-
-  ---------------
-
-  app.tsx
+  return buffer;
 
 
-  import React, { useState, useCallback, useRef } from 'react';
+
+geminiservice.ts
+
+
+
+import { GoogleGenAI, Modality } from "@google/genai";
+
+const API_KEY = process.env.API_KEY;
+
+if (!API_KEY) {
+  throw new Error("API_KEY environment variable not set");
+}
+
+const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+export async function generateBlogPost(topic: string): Promise<string> {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Write a compelling and informative blog post about "${topic}". The post should be well-structured, engaging, and at least 300 words long. Use clear paragraphs.`,
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Error generating blog post:", error);
+    throw new Error("Failed to communicate with the Gemini API for text generation.");
+  }
+}
+
+
+export async function generateSpeech(text: string): Promise<string> {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-preview-tts",
+      contents: [{ parts: [{ text: text }] }],
+      config: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+            voiceConfig: {
+              // Other available voices: Puck, Charon, Zephyr, Fenrir
+              prebuiltVoiceConfig: { voiceName: 'Kore' },
+            },
+        },
+      },
+    });
+
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (base64Audio) {
+      return base64Audio;
+    } else {
+      throw new Error("No audio data received from the API.");
+    }
+  } catch (error) {
+    console.error("Error generating speech:", error);
+    throw new Error("Failed to communicate with the Gemini API for speech generation.");
+  }
+}
+
+
+metadata.json
+
+{
+  "name": "AI Blog & Voice Generator",
+  "description": "Generate a blog post on any topic using AI, then listen to it with a realistic text-to-speech voice. An example of Gemini's text and audio generation capabilities.",
+  "requestFramePermissions": []
+}
+
+
+index.tsx
+
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+
+index.html
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Blog & Voice Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-900">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
+
+
+
+app.tsx
+
+
+import React, { useState, useRef } from 'react';
 import { generateBlogPost, generateSpeech } from './services/geminiService';
-import { decode, decodeAudioData } from './utils/audio';
-import { PlayIcon, StopIcon, SparklesIcon, LoadingSpinnerIcon } from './components/icons';
+import { decode, decodeAudioData } from './utils/audioUtils';
+import { SparklesIcon, VolumeUpIcon, LoadingSpinner, DocumentTextIcon } from './components/Icons';
 
 const App: React.FC = () => {
   const [topic, setTopic] = useState<string>('');
-  const [blogContent, setBlogContent] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [loadingStep, setLoadingStep] = useState<string>('');
+  const [blogPost, setBlogPost] = useState<string | null>(null);
+  const [isLoadingPost, setIsLoadingPost] = useState<boolean>(false);
+  const [isLoadingSpeech, setIsLoadingSpeech] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [audioData, setAudioData] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
-  const handleStopAudio = useCallback(() => {
-    if (audioSourceRef.current) {
-      audioSourceRef.current.stop();
-      audioSourceRef.current.disconnect();
-      audioSourceRef.current = null;
-    }
-    setIsPlaying(false);
-  }, []);
-  
-  const handlePlayAudio = useCallback(async () => {
-    if (!audioData) return;
+  const handleGeneratePost = async () => {
+    if (!topic.trim() || isLoadingPost) return;
 
-    if (isPlaying) {
-      handleStopAudio();
-      return;
-    }
+    setIsLoadingPost(true);
+    setError(null);
+    setBlogPost(null);
 
     try {
+      const post = await generateBlogPost(topic);
+      setBlogPost(post);
+    } catch (err) {
+      setError('Failed to generate blog post. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoadingPost(false);
+    }
+  };
+
+  const handleGenerateSpeech = async () => {
+    if (!blogPost || isLoadingSpeech) return;
+
+    setIsLoadingSpeech(true);
+    setError(null);
+
+    try {
+      if (audioSourceRef.current) {
+        audioSourceRef.current.stop();
+      }
+
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       }
       
-      const audioBuffer = await decodeAudioData(
-        decode(audioData),
-        audioContextRef.current,
-        24000,
-        1
-      );
+      const audioContext = audioContextRef.current;
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      const base64Audio = await generateSpeech(blogPost);
+      const audioBytes = decode(base64Audio);
+      const audioBuffer = await decodeAudioData(audioBytes, audioContext, 24000, 1);
       
-      const source = audioContextRef.current.createBufferSource();
+      const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
-      source.connect(audioContextRef.current.destination);
+      source.connect(audioContext.destination);
+      source.start();
+
+      audioSourceRef.current = source;
       source.onended = () => {
-        setIsPlaying(false);
         audioSourceRef.current = null;
       };
-      source.start();
-      
-      audioSourceRef.current = source;
-      setIsPlaying(true);
-    } catch (e) {
-      console.error('Error playing audio:', e);
-      setError('Failed to play audio. The data might be corrupted.');
-    }
-  }, [audioData, isPlaying, handleStopAudio]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!topic || isLoading) return;
-
-    setIsLoading(true);
-    setError(null);
-    setBlogContent('');
-    setAudioData(null);
-    handleStopAudio();
-
-    try {
-      setLoadingStep('Crafting the perfect blog post...');
-      const content = await generateBlogPost(topic);
-      setBlogContent(content);
-
-      setLoadingStep('Synthesizing audio with a nice voice...');
-      const speechData = await generateSpeech(content);
-      setAudioData(speechData);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+    } catch (err) {
+      setError('Failed to generate audio. Please try again.');
+      console.error(err);
     } finally {
-      setIsLoading(false);
-      setLoadingStep('');
+      setIsLoadingSpeech(false);
     }
   };
 
+
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 font-sans p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-900 text-white font-sans p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         <header className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-600">
-            AI Blog Post Generator
+            AI Blog & Voice Generator
           </h1>
-          <p className="mt-2 text-lg text-gray-400">Enter a topic and let Gemini create a post and read it to you!</p>
+          <p className="mt-2 text-lg text-gray-400">
+            Bring your ideas to life with AI-generated articles and audio.
+          </p>
         </header>
 
         <main>
-          <form onSubmit={handleSubmit} className="mb-8">
-            <div className="relative">
-              <input
-                type="text"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="e.g., 'The Future of Renewable Energy'"
-                className="w-full pl-4 pr-32 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all duration-300"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                disabled={isLoading || !topic}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-[calc(100%-1rem)] px-4 flex items-center justify-center font-semibold bg-indigo-600 rounded-md text-white hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-300"
-              >
-                {isLoading ? (
-                  <LoadingSpinnerIcon className="animate-spin h-5 w-5" />
-                ) : (
-                  <>
-                    <SparklesIcon className="w-5 h-5 mr-2" />
-                    Generate
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-
-          {isLoading && (
-            <div className="text-center p-8 bg-gray-800 rounded-lg">
-              <div className="flex justify-center items-center mb-4">
-                <LoadingSpinnerIcon className="animate-spin h-8 w-8 text-indigo-400" />
-              </div>
-              <p className="text-lg text-gray-300">{loadingStep}</p>
-            </div>
-          )}
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 shadow-2xl shadow-indigo-900/20 border border-gray-700">
+            <label htmlFor="topic" className="block text-lg font-medium text-gray-300 mb-2">
+              Enter a Blog Topic
+            </label>
+            <textarea
+              id="topic"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="e.g., The future of renewable energy..."
+              className="w-full h-24 p-4 bg-gray-900 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 resize-none"
+              disabled={isLoadingPost}
+            />
+            <button
+              onClick={handleGeneratePost}
+              disabled={!topic.trim() || isLoadingPost}
+              className="mt-4 w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 transition-all duration-200"
+            >
+              {isLoadingPost ? (
+                <>
+                  <LoadingSpinner className="mr-2" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <SparklesIcon className="mr-2" />
+                  Generate Blog Post
+                </>
+              )}
+            </button>
+          </div>
 
           {error && (
-            <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-center" role="alert">
-              <strong className="font-bold">Error: </strong>
-              <span className="block sm:inline">{error}</span>
+            <div className="mt-6 bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg" role="alert">
+              <p>{error}</p>
             </div>
           )}
 
-          {blogContent && !isLoading && (
-            <article className="prose prose-invert max-w-none bg-gray-800 rounded-lg p-6 sm:p-8 shadow-lg transition-opacity duration-500 animate-fade-in">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-3xl font-bold text-gray-100 mb-0">
-                  {topic.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                </h2>
-                {audioData && (
-                  <button 
-                    onClick={handlePlayAudio}
-                    className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-300"
+          <div className="mt-8">
+            {isLoadingPost && (
+               <div className="flex flex-col items-center justify-center bg-gray-800/50 rounded-xl p-8 border border-gray-700">
+                  <LoadingSpinner className="w-8 h-8"/>
+                  <p className="mt-4 text-gray-400">Crafting your blog post...</p>
+               </div>
+            )}
+            {blogPost && (
+              <article className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 shadow-2xl shadow-indigo-900/20 border border-gray-700">
+                <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-700">
+                  <h2 className="text-2xl font-bold text-gray-100 flex items-center">
+                    <DocumentTextIcon className="mr-3 text-indigo-400" />
+                    Your Generated Blog Post
+                  </h2>
+                  <button
+                    onClick={handleGenerateSpeech}
+                    disabled={isLoadingSpeech}
+                    className="flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-green-500 transition-all"
                   >
-                    {isPlaying ? <StopIcon className="w-6 h-6"/> : <PlayIcon className="w-6 h-6"/>}
-                    <span className="font-semibold">{isPlaying ? 'Stop' : 'Listen'}</span>
+                    {isLoadingSpeech ? (
+                      <>
+                        <LoadingSpinner className="mr-2" />
+                        Generating Audio
+                      </>
+                    ) : (
+                      <>
+                        <VolumeUpIcon className="mr-2" />
+                        Listen to Post
+                      </>
+                    )}
                   </button>
-                )}
-              </div>
-              <div className="text-gray-300 whitespace-pre-wrap">{blogContent}</div>
-            </article>
-          )}
-
+                </div>
+                <div className="prose prose-invert max-w-none text-gray-300 leading-relaxed space-y-4">
+                  {blogPost.split('\n').map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
+                </div>
+              </article>
+            )}
+          </div>
         </main>
       </div>
     </div>
@@ -260,3 +323,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

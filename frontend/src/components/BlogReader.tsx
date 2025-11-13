@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   X,
@@ -278,6 +278,18 @@ export default function BlogReader({ blog, onClose }: BlogReaderProps) {
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
+
+  // Auto-play audio when component mounts (if audio is available)
+  useEffect(() => {
+    if (blog.audio && isPCMFormat) {
+      // Small delay to ensure component is fully mounted
+      const timer = setTimeout(() => {
+        playPCMAudio();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <motion.div

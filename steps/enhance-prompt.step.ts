@@ -8,7 +8,7 @@ import { GoogleGenAI } from '@google/genai';
  * Receives data from the API Step (generate-content)
  */
 const EnhancePromptInputSchema = ContentRequestSchema.extend({
-  requestId: z.string().uuid()
+  requestId: z.string()
 });
 
 /**
