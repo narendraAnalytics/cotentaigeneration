@@ -40,6 +40,9 @@ export default function BlogReader({ blog, onClose }: BlogReaderProps) {
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const startTimeRef = useRef<number>(0);
   const pauseTimeRef = useRef<number>(0);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
 
   // Determine if we should use Web Audio API (for PCM) or HTML5 Audio (for MP3)
   const isPCMFormat = blog.audio?.format === 'pcm';
@@ -349,6 +352,167 @@ export default function BlogReader({ blog, onClose }: BlogReaderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Detect manual scrolling and disable auto-scroll temporarily
+  useEffect(() => {
+    const scrollContainer = contentScrollRef.current;
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      // User scrolled manually - disable auto-scroll
+      setAutoScrollEnabled(false);
+
+      // Clear existing timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      // Re-enable auto-scroll after 5 seconds of no scrolling
+      scrollTimeoutRef.current = setTimeout(() => {
+        setAutoScrollEnabled(true);
+      }, 5000);
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Text highlighting during playback - sentence level
+  useEffect(() => {
+    const articleElement = document.querySelector('.prose');
+    if (!articleElement) return;
+
+    // Get all paragraphs and headings
+    const paragraphs = articleElement.querySelectorAll('p, h1, h2, h3, h4, h5, h6');
+    if (paragraphs.length === 0) return;
+
+    // If not playing, remove all highlights
+    if (!isPlaying || !blog.audio) {
+      paragraphs.forEach((p) => {
+        const sentences = p.querySelectorAll('.sentence-highlight');
+        sentences.forEach((s) => s.classList.remove('highlighted-text'));
+      });
+      return;
+    }
+
+    // Split all paragraphs into sentences and wrap them
+    const allSentences: Array<{ element: HTMLElement; text: string }> = [];
+
+    paragraphs.forEach((paragraph) => {
+      const text = paragraph.textContent || '';
+      // Split by sentence endings (., !, ?)
+      const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+
+      if (sentences.length > 1) {
+        // Wrap each sentence in a span for individual highlighting
+        let html = '';
+        sentences.forEach((sentence, idx) => {
+          html += `<span class="sentence-highlight" data-sentence-id="${allSentences.length + idx}">${sentence}</span> `;
+        });
+        paragraph.innerHTML = html;
+
+        // Collect wrapped sentence elements
+        const wrappedSentences = paragraph.querySelectorAll('.sentence-highlight');
+        wrappedSentences.forEach((el) => {
+          allSentences.push({
+            element: el as HTMLElement,
+            text: el.textContent || ''
+          });
+        });
+      } else {
+        // Single sentence or heading - wrap entire element
+        const wrapper = document.createElement('span');
+        wrapper.className = 'sentence-highlight';
+        wrapper.setAttribute('data-sentence-id', String(allSentences.length));
+        wrapper.textContent = text;
+        paragraph.innerHTML = '';
+        paragraph.appendChild(wrapper);
+
+        allSentences.push({
+          element: wrapper,
+          text: text
+        });
+      }
+    });
+
+    if (allSentences.length === 0) return;
+
+    // Calculate estimated duration for each sentence
+    const calculateSentenceDuration = (text: string): number => {
+      // Count words (base unit)
+      const wordCount = text.split(/\s+/).filter(Boolean).length;
+
+      // TTS typically speaks at ~150 words per minute
+      const baseSeconds = (wordCount / 150) * 60;
+
+      // Add pause time for punctuation (in seconds)
+      const periodPauses = (text.match(/[.!?]/g) || []).length * 0.6;  // 0.6s pause after sentence end
+      const commaPauses = (text.match(/[,;:]/g) || []).length * 0.3;   // 0.3s pause after comma
+      const totalPauses = periodPauses + commaPauses;
+
+      // Return total estimated time
+      return baseSeconds + totalPauses;
+    };
+
+    // Calculate total estimated duration for all sentences
+    const totalEstimatedDuration = allSentences.reduce((sum, sentence) => {
+      return sum + calculateSentenceDuration(sentence.text);
+    }, 0);
+
+    // Use actual audio duration for calibration
+    const actualDuration = duration || 0;
+
+    // Calculate scaling factor to match actual duration
+    // Add 5% buffer to prevent highlighting from rushing ahead
+    const scalingFactor = actualDuration > 0
+      ? (actualDuration / totalEstimatedDuration) * 1.05
+      : 1;
+
+    // Build timing map for each sentence
+    let cumulativeTime = 0;
+    const timingMap: Array<{ element: HTMLElement; startTime: number; endTime: number }> = [];
+
+    allSentences.forEach((sentence) => {
+      const estimatedDuration = calculateSentenceDuration(sentence.text);
+      const actualSentenceDuration = estimatedDuration * scalingFactor;
+
+      timingMap.push({
+        element: sentence.element,
+        startTime: cumulativeTime,
+        endTime: cumulativeTime + actualSentenceDuration,
+      });
+
+      cumulativeTime += actualSentenceDuration;
+    });
+
+    // Find and highlight current sentence
+    const currentSentence = timingMap.find(
+      (item) => currentTime >= item.startTime && currentTime < item.endTime
+    );
+
+    // Remove previous highlights
+    allSentences.forEach((s) => s.element.classList.remove('highlighted-text'));
+
+    // Add highlight to current sentence
+    if (currentSentence && autoScrollEnabled) {
+      currentSentence.element.classList.add('highlighted-text');
+
+      // Auto-scroll only if enabled
+      currentSentence.element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    } else if (currentSentence) {
+      // Still highlight even if auto-scroll is disabled
+      currentSentence.element.classList.add('highlighted-text');
+    }
+  }, [isPlaying, currentTime, duration, autoScrollEnabled]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -472,7 +636,7 @@ export default function BlogReader({ blog, onClose }: BlogReaderProps) {
         )}
 
         {/* Blog Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div ref={contentScrollRef} className="flex-1 overflow-y-auto px-6 py-6">
           <article className="prose prose-lg max-w-none">
             <ReactMarkdown>{blog.content}</ReactMarkdown>
           </article>
