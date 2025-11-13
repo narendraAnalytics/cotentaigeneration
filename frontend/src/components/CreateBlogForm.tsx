@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Loader2, Plus, Trash2 } from "lucide-react";
+import { X, Loader2, Plus, Trash2, Sparkles } from "lucide-react";
+import { suggestBlogMetadata } from "@/lib/api";
 
 interface CreateBlogFormProps {
   onClose: () => void;
@@ -44,6 +45,7 @@ export default function CreateBlogForm({
   const [style, setStyle] = useState("informative");
   const [wordCount, setWordCount] = useState(1000);
   const [sectionCount, setSectionCount] = useState(4);
+  const [isSuggesting, setIsSuggesting] = useState(false);
 
   const handleAddKeyword = () => {
     if (keywordInput.trim() && !keywords.includes(keywordInput.trim())) {
@@ -54,6 +56,40 @@ export default function CreateBlogForm({
 
   const handleRemoveKeyword = (keyword: string) => {
     setKeywords(keywords.filter((k) => k !== keyword));
+  };
+
+  const handleGenerateSuggestions = async () => {
+    if (!topic.trim()) {
+      alert("Please enter a topic first");
+      return;
+    }
+
+    try {
+      setIsSuggesting(true);
+
+      const suggestions = await suggestBlogMetadata(topic.trim());
+
+      // Only fill empty fields (preserve user input)
+      if (keywords.length === 0 && suggestions.keywords.length > 0) {
+        setKeywords(suggestions.keywords);
+      }
+
+      if (!targetAudience.trim() && suggestions.targetAudience) {
+        setTargetAudience(suggestions.targetAudience);
+      }
+
+      if (!additionalContext.trim() && suggestions.additionalContext) {
+        setAdditionalContext(suggestions.additionalContext);
+      }
+
+      // Success feedback
+      console.log("✅ Suggestions applied successfully");
+    } catch (error) {
+      console.error("Error generating suggestions:", error);
+      alert("Failed to generate suggestions. Please try again.");
+    } finally {
+      setIsSuggesting(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -110,7 +146,7 @@ export default function CreateBlogForm({
           <button
             type="button"
             onClick={onClose}
-            disabled={isGenerating}
+            disabled={isGenerating || isSuggesting}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
             aria-label="Close form"
           >
@@ -125,15 +161,36 @@ export default function CreateBlogForm({
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Topic <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g., AI in Software Development"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-              required
-              disabled={isGenerating}
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="e.g., AI in Software Development"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                required
+                disabled={isGenerating || isSuggesting}
+              />
+              <button
+                type="button"
+                onClick={handleGenerateSuggestions}
+                disabled={isGenerating || isSuggesting || !topic.trim()}
+                className="px-4 py-3 bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-semibold whitespace-nowrap"
+                title="Generate AI suggestions for keywords, audience, and context"
+              >
+                {isSuggesting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Suggesting...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    Suggest
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Keywords */}
@@ -149,12 +206,12 @@ export default function CreateBlogForm({
                 onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddKeyword())}
                 placeholder="Add keyword and press Enter"
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-                disabled={isGenerating}
+                disabled={isGenerating || isSuggesting}
               />
               <button
                 type="button"
                 onClick={handleAddKeyword}
-                disabled={isGenerating}
+                disabled={isGenerating || isSuggesting}
                 className="px-4 py-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors disabled:opacity-50"
                 aria-label="Add keyword"
               >
@@ -171,7 +228,7 @@ export default function CreateBlogForm({
                   <button
                     type="button"
                     onClick={() => handleRemoveKeyword(keyword)}
-                    disabled={isGenerating}
+                    disabled={isGenerating || isSuggesting}
                     className="hover:text-purple-900 disabled:opacity-50"
                     aria-label={`Remove keyword ${keyword}`}
                   >
@@ -193,7 +250,7 @@ export default function CreateBlogForm({
               onChange={(e) => setTargetAudience(e.target.value)}
               placeholder="e.g., Software developers and tech professionals"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-              disabled={isGenerating}
+              disabled={isGenerating || isSuggesting}
             />
           </div>
 
@@ -208,7 +265,7 @@ export default function CreateBlogForm({
               placeholder="Provide any additional context or specific points to cover..."
               rows={4}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all resize-none"
-              disabled={isGenerating}
+              disabled={isGenerating || isSuggesting}
             />
           </div>
 
@@ -312,14 +369,14 @@ export default function CreateBlogForm({
             <button
               type="button"
               onClick={onClose}
-              disabled={isGenerating}
+              disabled={isGenerating || isSuggesting}
               className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isGenerating}
+              disabled={isGenerating || isSuggesting}
               className="flex-1 px-6 py-3 bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-semibold"
             >
               {isGenerating ? (

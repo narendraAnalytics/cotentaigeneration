@@ -231,3 +231,42 @@ export async function sendBlogEmail(
     };
   }
 }
+
+/**
+ * Suggest blog metadata (keywords, target audience, additional context)
+ * Uses AI to generate suggestions based on the topic
+ */
+export async function suggestBlogMetadata(
+  topic: string
+): Promise<{
+  keywords: string[];
+  targetAudience: string;
+  additionalContext: string;
+}> {
+  try {
+    console.log('🤖 Requesting metadata suggestions for:', topic);
+
+    const response = await fetch(`${BACKEND_URL}/api/suggest-blog-metadata`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ topic }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Metadata suggestion error:', errorData);
+      throw new Error(
+        errorData.error || `HTTP ${response.status}: ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    console.log('✅ Metadata suggestions received:', data);
+    return data;
+  } catch (error) {
+    console.error("❌ Error getting metadata suggestions:", error);
+    throw error;
+  }
+}

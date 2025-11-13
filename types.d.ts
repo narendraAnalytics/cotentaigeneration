@@ -12,6 +12,7 @@ declare module 'motia' {
   }
 
   interface Handlers {
+    'SuggestBlogMetadata': ApiRouteHandler<{ topic: string }, ApiResponse<200, { keywords: Array<string>; targetAudience: string; additionalContext: string }> | ApiResponse<400, { error: string }> | ApiResponse<500, { error: string }>, never>
     'SendBlogEmail': ApiRouteHandler<{ requestId: string; email: string }, ApiResponse<200, { success: boolean; message: string; messageId?: string }> | ApiResponse<400, { success: boolean; error: string }> | ApiResponse<404, { success: boolean; error: string }> | ApiResponse<500, { success: boolean; error: string }>, never>
     'GetContent': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, { id: string; article?: unknown; status: string; generatedAt: string; fullContent: string; audio?: { audioData: string; format: string; sampleRate: number; channels: number; generatedAt: string } }> | ApiResponse<404, { error: string; message: string }> | ApiResponse<500, { error: string }>, never>
     'GetAudio': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, unknown> | ApiResponse<404, { error: string; message: string }> | ApiResponse<500, { error: string; message: string }>, never>
