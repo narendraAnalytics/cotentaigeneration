@@ -32,6 +32,7 @@ export const config: ApiRouteConfig = {
   path: '/api/suggest-blog-metadata',
   method: 'POST',
   emits: [],
+  flows: ['content-generation'],
   bodySchema: SuggestMetadataInputSchema,
   responseSchema: {
     200: SuggestMetadataOutputSchema,

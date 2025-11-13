@@ -42,6 +42,10 @@
       "steps\\enhance-prompt.step.ts": {
         "x": -692,
         "y": -216
+      },
+      "steps\\suggest-blog-metadata.step.ts": {
+        "x": -408,
+        "y": -30
       }
     }
   }
