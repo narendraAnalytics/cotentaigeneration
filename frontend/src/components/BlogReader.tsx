@@ -261,16 +261,73 @@ export default function BlogReader({ blog, onClose }: BlogReaderProps) {
     setIsMuted(!isMuted);
   };
 
+  /**
+   * Convert PCM to WAV format for Windows playback
+   */
+  const convertPCMToWAV = useCallback((base64PCM: string, sampleRate: number, channels: number): Blob => {
+    // Decode base64 to binary
+    const pcmData = decodePCMAudio(base64PCM);
+
+    // WAV file header specifications
+    const dataSize = pcmData.length;
+    const headerSize = 44;
+    const totalSize = headerSize + dataSize;
+    const buffer = new ArrayBuffer(totalSize);
+    const view = new DataView(buffer);
+
+    // Write WAV header
+    const writeString = (offset: number, string: string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    };
+
+    writeString(0, 'RIFF');                                   // ChunkID
+    view.setUint32(4, totalSize - 8, true);                   // ChunkSize
+    writeString(8, 'WAVE');                                   // Format
+    writeString(12, 'fmt ');                                  // Subchunk1ID
+    view.setUint32(16, 16, true);                             // Subchunk1Size (16 for PCM)
+    view.setUint16(20, 1, true);                              // AudioFormat (1 for PCM)
+    view.setUint16(22, channels, true);                       // NumChannels
+    view.setUint32(24, sampleRate, true);                     // SampleRate
+    view.setUint32(28, sampleRate * channels * 2, true);      // ByteRate
+    view.setUint16(32, channels * 2, true);                   // BlockAlign
+    view.setUint16(34, 16, true);                             // BitsPerSample
+    writeString(36, 'data');                                  // Subchunk2ID
+    view.setUint32(40, dataSize, true);                       // Subchunk2Size
+
+    // Copy PCM data
+    const pcmView = new Uint8Array(buffer, headerSize);
+    pcmView.set(pcmData);
+
+    return new Blob([buffer], { type: 'audio/wav' });
+  }, [decodePCMAudio]);
+
   const handleDownloadAudio = useCallback(() => {
     if (!blog.audio) return;
 
-    const dataUrl = `data:audio/${blog.audio.format};base64,${blog.audio.audioData}`;
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    const extension = blog.audio.format === 'pcm' ? 'pcm' : 'mp3';
-    link.download = `${blog.title.replace(/\s+/g, "-").toLowerCase()}.${extension}`;
-    link.click();
-  }, [blog.audio, blog.title]);
+    if (blog.audio.format === 'pcm') {
+      // Convert PCM to WAV for Windows compatibility
+      const wavBlob = convertPCMToWAV(
+        blog.audio.audioData,
+        24000, // sampleRate
+        1      // channels (mono)
+      );
+      const url = URL.createObjectURL(wavBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${blog.title.replace(/\s+/g, "-").toLowerCase()}.wav`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else {
+      // MP3 format - keep original behavior
+      const dataUrl = `data:audio/${blog.audio.format};base64,${blog.audio.audioData}`;
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `${blog.title.replace(/\s+/g, "-").toLowerCase()}.mp3`;
+      link.click();
+    }
+  }, [blog.audio, blog.title, convertPCMToWAV]);
 
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return "0:00";
@@ -309,7 +366,7 @@ export default function BlogReader({ blog, onClose }: BlogReaderProps) {
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900">{blog.title}</h2>
+            <h2 className="text-2xl font-bold bg-linear-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">{blog.title}</h2>
             {blog.description && (
               <p className="text-sm text-gray-600 mt-1">{blog.description}</p>
             )}
