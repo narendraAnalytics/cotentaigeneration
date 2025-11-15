@@ -18,12 +18,30 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch user's blog posts (newest first)
+    // Fetch user's blog posts (newest first, without audio data to reduce payload size)
     const posts = await db
-      .select()
+      .select({
+        id: blogPosts.id,
+        userId: blogPosts.userId,
+        title: blogPosts.title,
+        slug: blogPosts.slug,
+        content: blogPosts.content,
+        description: blogPosts.description,
+        tone: blogPosts.tone,
+        audience: blogPosts.audience,
+        status: blogPosts.status,
+        audioUrl: blogPosts.audioUrl,
+        audioDuration: blogPosts.audioDuration,
+        audioFileSize: blogPosts.audioFileSize,
+        audioStatus: blogPosts.audioStatus,
+        createdAt: blogPosts.createdAt,
+        updatedAt: blogPosts.updatedAt,
+        // audioData excluded - too large for list view, fetched on-demand
+      })
       .from(blogPosts)
       .where(eq(blogPosts.userId, userId))
-      .orderBy(desc(blogPosts.createdAt));
+      .orderBy(desc(blogPosts.createdAt))
+      .limit(5);
 
     return NextResponse.json({ posts });
   } catch (error) {

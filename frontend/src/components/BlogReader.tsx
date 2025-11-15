@@ -468,9 +468,9 @@ export default function BlogReader({ blog, onClose }: BlogReaderProps) {
     const actualDuration = duration || 0;
 
     // Calculate scaling factor to match actual duration
-    // Add 5% buffer to prevent highlighting from rushing ahead
+    // Add 20% buffer to sync highlighting with audio voice
     const scalingFactor = actualDuration > 0
-      ? (actualDuration / totalEstimatedDuration) * 1.05
+      ? (actualDuration / totalEstimatedDuration) * 1.20
       : 1;
 
     // Build timing map for each sentence

@@ -189,8 +189,8 @@ export default function DashboardPage() {
         title,
         content,
         description,
-        tone: formData.options?.tone || 'professional',
-        audience: formData.targetAudience || '',
+        tone: (formData.options?.tone || 'professional').substring(0, 80),
+        audience: (formData.targetAudience || '').substring(0, 80),
         audioData: blogContent.audio?.audioData || null,
         audioDuration: blogContent.audio
           ? estimateAudioDuration(
@@ -246,35 +246,48 @@ export default function DashboardPage() {
   };
 
   const handlePostClick = async (post: BlogPost) => {
-    // Convert saved post to BlogContentResponse format for the reader
-    const blogContent: BlogContentResponse = {
-      id: post.id,
-      status: 'completed',
-      article: {
-        title: post.title,
-        content: post.content,
-        wordCount: post.content.split(/\s+/).length,
-        sections: [],
-        metadata: {
-          topic: post.title,
-          keywords: [],
-          tone: post.tone || 'professional',
-          style: 'informative',
-        },
-      },
-      audio: post.audioData
-        ? {
-            audioData: post.audioData,
-            format: 'pcm',
-            sampleRate: 24000,
-            channels: 1,
-            generatedAt: post.createdAt,
-          }
-        : undefined,
-      generatedAt: post.createdAt,
-    };
+    try {
+      // Fetch full post with audio data from API
+      const response = await fetch(`/api/blog-posts/${post.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch post details');
+      }
 
-    setSelectedBlog(blogContent);
+      const { post: fullPost } = await response.json();
+
+      // Convert saved post to BlogContentResponse format for the reader
+      const blogContent: BlogContentResponse = {
+        id: fullPost.id,
+        status: 'completed',
+        article: {
+          title: fullPost.title,
+          content: fullPost.content,
+          wordCount: fullPost.content.split(/\s+/).length,
+          sections: [],
+          metadata: {
+            topic: fullPost.title,
+            keywords: [],
+            tone: fullPost.tone || 'professional',
+            style: 'informative',
+          },
+        },
+        audio: fullPost.audioData
+          ? {
+              audioData: fullPost.audioData,
+              format: 'pcm',
+              sampleRate: 24000,
+              channels: 1,
+              generatedAt: fullPost.createdAt,
+            }
+          : undefined,
+        generatedAt: fullPost.createdAt,
+      };
+
+      setSelectedBlog(blogContent);
+    } catch (error) {
+      console.error('Error loading post:', error);
+      alert('Failed to load post. Please try again.');
+    }
   };
 
   const formatDate = (dateString: string) => {
