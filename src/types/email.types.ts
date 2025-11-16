@@ -14,6 +14,22 @@ export const EmailTypeSchema = z.enum([
 export type EmailType = z.infer<typeof EmailTypeSchema>;
 
 /**
+ * Industry Type Enum (NEW - Optional Enhancement)
+ * Industry-specific language and tone optimization
+ */
+export const IndustryTypeSchema = z.enum([
+  'saas',          // Software as a Service, Tech
+  'ecommerce',     // Retail, Online stores
+  'healthcare',    // Medical, Wellness, Fitness
+  'realestate',    // Property, Real estate agents
+  'finance',       // Banking, Investment, Insurance
+  'education',     // Schools, Training, Courses
+  'general'        // General business
+]);
+
+export type IndustryType = z.infer<typeof IndustryTypeSchema>;
+
+/**
  * Email Tone Enum
  * Tone options for email generation
  */
@@ -41,7 +57,12 @@ export const EmailRequestSchema = z.object({
 
   additionalContext: z.string().optional().describe('Additional context or specific requirements'),
 
-  tone: EmailToneSchema.default('professional').describe('Tone of the email')
+  tone: EmailToneSchema.default('professional').describe('Tone of the email'),
+
+  // NEW: Optional enhancement fields
+  industry: IndustryTypeSchema.optional().describe('Industry for specialized language and tone'),
+
+  emojiEnabled: z.boolean().optional().default(false).describe('Enable emojis in subject line')
 });
 
 export type EmailRequest = z.infer<typeof EmailRequestSchema>;
@@ -64,7 +85,14 @@ export const EmailContentSchema = z.object({
     estimatedReadTime: z.string().optional(),
     tone: EmailToneSchema,
     keywords: z.array(z.string())
-  })
+  }),
+
+  // NEW: Optional visual enhancement fields
+  preheaderText: z.string().optional().describe('Preheader/preview text (40-130 chars)'),
+
+  htmlBody: z.string().optional().describe('HTML formatted version of email body'),
+
+  emojiUsed: z.boolean().optional().describe('Whether emojis were used in subject')
 });
 
 export type EmailContent = z.infer<typeof EmailContentSchema>;
@@ -95,7 +123,14 @@ export const EmailResponseSchema = z.object({
     keywords: z.array(z.string())
   }),
 
-  generatedAt: z.string()
+  generatedAt: z.string(),
+
+  // NEW: Optional visual enhancement fields
+  preheaderText: z.string().optional(),
+
+  htmlBody: z.string().optional(),
+
+  emojiUsed: z.boolean().optional()
 });
 
 export type EmailResponse = z.infer<typeof EmailResponseSchema>;

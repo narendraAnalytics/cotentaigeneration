@@ -282,6 +282,9 @@ export interface EmailGenerationRequest {
   targetAudience?: string;
   additionalContext?: string;
   tone: 'professional' | 'casual' | 'formal' | 'friendly';
+  // NEW: Optional enhancement fields
+  industry?: 'saas' | 'ecommerce' | 'healthcare' | 'realestate' | 'finance' | 'education' | 'general';
+  emojiEnabled?: boolean;
 }
 
 export interface EmailGenerationResponse {
@@ -305,6 +308,10 @@ export interface EmailContentResponse {
     keywords: string[];
   };
   generatedAt: string;
+  // NEW: Optional enhancement fields
+  preheaderText?: string;
+  htmlBody?: string;
+  emojiUsed?: boolean;
 }
 
 /**

@@ -88,6 +88,10 @@ export const handler: Handlers['GenerateEmailContent'] = async (input, { logger,
     const emailType = emailData.emailType || 'marketing';
     const tone = emailData.tone || 'professional';
 
+    // NEW: Extract optional enhancement fields
+    const industry = emailData.industry; // Optional industry type
+    const emojiEnabled = emailData.emojiEnabled || false; // Optional emoji flag
+
     // Build email generation prompt using enhanced data
     const emailPrompt = `You are an expert email copywriter. Generate a professional ${emailType} email using the research and insights provided.
 
@@ -118,7 +122,7 @@ ${enhancedData.additionalContext}
 - Topic/Purpose: ${topic}
 - Email Type: ${emailType}
 - Target Audience: ${targetAudience || 'General audience'}
-- Tone: ${tone}
+- Tone: ${tone}${industry ? `\n- Industry: ${industry} (USE INDUSTRY-SPECIFIC LANGUAGE)` : ''}${emojiEnabled ? '\n- Emoji Mode: ENABLED (include 1-2 relevant emojis in subject line)' : ''}
 
 ---
 
@@ -128,23 +132,38 @@ ${enhancedData.additionalContext}
    - Choose the BEST subject line from the options above
    - Provide 4 alternative subject lines for A/B testing
    - Keep all subject lines under 60 characters
-   - Optimize for open rates
+   - Optimize for open rates${emojiEnabled ? '\n   - **Include 1-2 relevant emojis** in subject lines (e.g., 🎯, ✨, 🚀, 💡, 🎉)' : ''}
 
-2. **Email Body:**
+2. **Preheader Text (NEW):**
+   - Create a compelling preheader/preview text (40-130 characters)
+   - Complements the subject line
+   - Provides additional context visible in inbox preview
+   - Entices reader to open the email
+
+3. **Email Body:**
    - Opening: Hook the reader immediately (1-2 sentences)
    - Value Proposition: Clearly state the benefit or purpose
    - Supporting Details: Use the key points identified in research
    - Call-to-Action: Clear, compelling CTA based on email type
-   - Closing: Professional sign-off appropriate for the tone
+   - Closing: Professional sign-off appropriate for the tone${industry ? `\n   - **Use ${industry} industry terminology and language patterns**` : ''}
 
-3. **Optimization:**
+4. **HTML Formatting (NEW):**
+   - Provide HTML formatted version with:
+     - <h2> for main headings
+     - <strong> for emphasis
+     - <ul>/<li> for bullet lists
+     - <p> tags for paragraphs
+     - Styled CTA button with inline CSS
+   - Keep HTML clean and email-client compatible
+
+5. **Optimization:**
    - Keep email concise (200-400 words for body)
    - Use short paragraphs and bullet points where appropriate
    - Incorporate enhanced keywords naturally
    - Make it scannable and easy to read
    - Ensure CTA stands out
 
-4. **Personalization:**
+6. **Personalization:**
    - Use "you" language
    - Address the target audience's pain points or desires
    - Include specific data or examples from your Google Search research
@@ -152,10 +171,13 @@ ${enhancedData.additionalContext}
 **Output Format:**
 Generate a complete email and provide it as a JSON object with this exact structure:
 {
-  "subject": "Best subject line (max 60 chars)",
+  "subject": "Best subject line (max 60 chars)${emojiEnabled ? ' with emojis' : ''}",
   "subjectAlternatives": ["alt 1", "alt 2", "alt 3", "alt 4"],
+  "preheaderText": "Compelling preview text (40-130 chars)",
   "body": "Complete email body text with proper formatting and line breaks",
+  "htmlBody": "HTML formatted version with <h2>, <strong>, <ul>, <li>, <p> tags and styled CTA button",
   "callToAction": "Specific CTA text",
+  "emojiUsed": ${emojiEnabled},
   "metadata": {
     "emailType": "${emailType}",
     "estimatedReadTime": "X min",
@@ -275,7 +297,11 @@ Generate the email now:`;
       emailType: emailType,
       callToAction: emailContent.callToAction,
       metadata: emailContent.metadata,
-      generatedAt: new Date().toISOString()
+      generatedAt: new Date().toISOString(),
+      // NEW: Store optional enhancement fields
+      preheaderText: emailContent.preheaderText || undefined,
+      htmlBody: emailContent.htmlBody || undefined,
+      emojiUsed: emailContent.emojiUsed || false
     };
 
     await state.set('email', requestId, resultData);

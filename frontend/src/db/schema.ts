@@ -45,6 +45,12 @@ export const blogPosts = pgTable('blog_posts', {
   audience: varchar('audience', { length: 100 }),
   status: varchar('status', { length: 50 }).default('draft').notNull(),
 
+  // NEW: Email enhancement fields (optional, NULL allowed)
+  industry: varchar('industry', { length: 50 }),
+  preheaderText: text('preheader_text'),
+  htmlContent: text('html_content'),
+  emojiUsed: varchar('emoji_used', { length: 10 }), // 'true' or 'false'
+
   // Audio file fields
   audioData: text('audio_data'), // Base64 encoded audio data
   audioUrl: text('audio_url'),

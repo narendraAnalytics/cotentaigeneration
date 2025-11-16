@@ -25,6 +25,10 @@ export default function CreateEmailForm({
   const [tone, setTone] = useState<'professional' | 'casual' | 'formal' | 'friendly'>('professional');
   const [isSuggesting, setIsSuggesting] = useState(false);
 
+  // NEW: Optional enhancement fields
+  const [industry, setIndustry] = useState<'saas' | 'ecommerce' | 'healthcare' | 'realestate' | 'finance' | 'education' | 'general' | ''>('');
+  const [emojiEnabled, setEmojiEnabled] = useState(false);
+
   const handleAddKeyword = () => {
     if (keywordInput.trim() && !keywords.includes(keywordInput.trim())) {
       setKeywords([...keywords, keywordInput.trim()]);
@@ -84,6 +88,9 @@ export default function CreateEmailForm({
       targetAudience: targetAudience.trim() || undefined,
       additionalContext: additionalContext.trim() || undefined,
       tone,
+      // NEW: Include optional enhancement fields
+      industry: industry || undefined,
+      emojiEnabled,
     };
 
     onSubmit(formData);
@@ -110,11 +117,11 @@ export default function CreateEmailForm({
           {/* Header */}
           <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg">
+              <div className="p-2 bg-linear-to-br from-purple-600 to-pink-600 rounded-lg">
                 <Mail className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h2 className="text-2xl font-bold bg-linear-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   Create New Email
                 </h2>
                 <p className="text-sm text-gray-600">
@@ -126,6 +133,7 @@ export default function CreateEmailForm({
               onClick={onClose}
               disabled={isGenerating}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Close"
             >
               <X className="w-6 h-6 text-gray-600" />
             </button>
@@ -140,7 +148,7 @@ export default function CreateEmailForm({
               disabled={isSuggesting || !topic.trim() || isGenerating}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 bg-linear-to-br from-purple-600 to-pink-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSuggesting ? (
                 <>
@@ -173,10 +181,11 @@ export default function CreateEmailForm({
 
             {/* Email Type */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="emailType" className="block text-sm font-semibold text-gray-700 mb-2">
                 Email Type *
               </label>
               <select
+                id="emailType"
                 value={emailType}
                 onChange={(e) => setEmailType(e.target.value as any)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 focus:outline-none transition-colors"
@@ -192,10 +201,11 @@ export default function CreateEmailForm({
 
             {/* Tone */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="tone" className="block text-sm font-semibold text-gray-700 mb-2">
                 Tone *
               </label>
               <select
+                id="tone"
                 value={tone}
                 onChange={(e) => setTone(e.target.value as any)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 focus:outline-none transition-colors"
@@ -207,6 +217,52 @@ export default function CreateEmailForm({
                 <option value="formal">Formal</option>
                 <option value="friendly">Friendly</option>
               </select>
+            </div>
+
+            {/* NEW: Industry Selector (Optional) */}
+            <div>
+              <label htmlFor="industry" className="block text-sm font-semibold text-gray-700 mb-2">
+                Industry (Optional)
+              </label>
+              <select
+                id="industry"
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value as any)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 focus:outline-none transition-colors"
+                disabled={isGenerating}
+              >
+                <option value="">None - General Email</option>
+                <option value="saas">SaaS / Tech</option>
+                <option value="ecommerce">E-commerce / Retail</option>
+                <option value="healthcare">Healthcare / Wellness</option>
+                <option value="realestate">Real Estate</option>
+                <option value="finance">Finance / Banking</option>
+                <option value="education">Education / Training</option>
+                <option value="general">General Business</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Select an industry for specialized language and tone
+              </p>
+            </div>
+
+            {/* NEW: Emoji Toggle (Optional) */}
+            <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl border-2 border-purple-200">
+              <input
+                type="checkbox"
+                id="emojiEnabled"
+                checked={emojiEnabled}
+                onChange={(e) => setEmojiEnabled(e.target.checked)}
+                disabled={isGenerating}
+                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+              />
+              <label htmlFor="emojiEnabled" className="flex-1">
+                <div className="text-sm font-semibold text-gray-700">
+                  Enable Emojis in Subject Line
+                </div>
+                <div className="text-xs text-gray-600">
+                  Boost open rates with relevant emojis (1-2 per subject)
+                </div>
+              </label>
             </div>
 
             {/* Keywords */}
@@ -234,6 +290,7 @@ export default function CreateEmailForm({
                   onClick={handleAddKeyword}
                   className="px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isGenerating}
+                  aria-label="Add keyword"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
@@ -256,6 +313,7 @@ export default function CreateEmailForm({
                         onClick={() => handleRemoveKeyword(keyword)}
                         className="hover:bg-purple-200 rounded transition-colors p-1"
                         disabled={isGenerating}
+                        aria-label={`Remove keyword ${keyword}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -301,7 +359,7 @@ export default function CreateEmailForm({
               disabled={isGenerating || !topic.trim() || keywords.length === 0}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-6 py-4 bg-linear-to-br from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGenerating ? (
                 <>

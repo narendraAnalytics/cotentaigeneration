@@ -39,6 +39,11 @@ export async function GET(request: NextRequest) {
         audioStatus: blogPosts.audioStatus,
         createdAt: blogPosts.createdAt,
         updatedAt: blogPosts.updatedAt,
+        // NEW: Include optional enhancement fields
+        industry: blogPosts.industry,
+        preheaderText: blogPosts.preheaderText,
+        htmlContent: blogPosts.htmlContent,
+        emojiUsed: blogPosts.emojiUsed,
         // audioData excluded - too large for list view, fetched on-demand
       })
       .from(blogPosts)
@@ -76,6 +81,11 @@ export async function POST(request: NextRequest) {
       audioDuration,
       audioFileSize,
       audioStatus,
+      // NEW: Optional enhancement fields
+      industry,
+      preheaderText,
+      htmlContent,
+      emojiUsed,
     } = body;
 
     if (!userId || !title || !content) {
@@ -111,6 +121,11 @@ export async function POST(request: NextRequest) {
         audioFileSize,
         audioStatus,
         status: 'draft',
+        // NEW: Store optional enhancement fields
+        industry: industry || null,
+        preheaderText: preheaderText || null,
+        htmlContent: htmlContent || null,
+        emojiUsed: emojiUsed ? 'true' : 'false',
       })
       .returning();
 

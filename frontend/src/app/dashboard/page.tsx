@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Plus, Loader2, Music, Clock, Calendar, Mail } from "lucide-react";
+import { FileText, Plus, Loader2, Music, Clock, Calendar, Mail, X } from "lucide-react";
 import CreateBlogForm, { BlogGenerationRequest } from "@/components/CreateBlogForm";
 import CreateEmailForm from "@/components/CreateEmailForm";
 import BlogReader from "@/components/BlogReader";
@@ -54,6 +54,7 @@ export default function DashboardPage() {
   } | null>(null);
   const [selectedBlog, setSelectedBlog] = useState<BlogContentResponse | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<EmailContentResponse | null>(null);
+  const [emailViewMode, setEmailViewMode] = useState<'plain' | 'html'>('plain'); // NEW: Toggle between plain/HTML
 
   useEffect(() => {
     console.log('🔍 Dashboard loaded, user:', user);
@@ -325,6 +326,11 @@ export default function DashboardPage() {
         audioDuration: null,
         audioFileSize: null,
         audioStatus: null,
+        // NEW: Include optional enhancement fields
+        industry: formData.industry || null,
+        preheaderText: emailContent.preheaderText || null,
+        htmlContent: emailContent.htmlBody || null,
+        emojiUsed: emailContent.emojiUsed || false,
       };
 
       console.log('📤 Sending email to database:', {
@@ -736,6 +742,147 @@ export default function DashboardPage() {
             }}
             onClose={() => setSelectedBlog(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Email Reader Modal (NEW) */}
+      <AnimatePresence>
+        {selectedEmail && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedEmail(null)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedEmail.subject}</h2>
+                  {selectedEmail.preheaderText && (
+                    <p className="text-sm text-gray-600 mt-1">{selectedEmail.preheaderText}</p>
+                  )}
+                  {selectedEmail.subjectAlternatives && selectedEmail.subjectAlternatives.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-500 font-semibold mb-1">Alternative Subject Lines:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedEmail.subjectAlternatives.map((alt, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
+                            {alt}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setSelectedEmail(null)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors ml-4"
+                  aria-label="Close email"
+                >
+                  <X className="w-6 h-6 text-gray-600" />
+                </button>
+              </div>
+
+              {/* View Mode Toggle (if HTML available) */}
+              {selectedEmail.htmlBody && (
+                <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
+                  <span className="text-sm text-gray-600 font-medium">View:</span>
+                  <button
+                    onClick={() => setEmailViewMode('plain')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                      emailViewMode === 'plain'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Plain Text
+                  </button>
+                  <button
+                    onClick={() => setEmailViewMode('html')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                      emailViewMode === 'html'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    HTML Preview
+                  </button>
+                </div>
+              )}
+
+              {/* Email Body */}
+              <div className="p-6">
+                {emailViewMode === 'html' && selectedEmail.htmlBody ? (
+                  <div
+                    className="prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: selectedEmail.htmlBody }}
+                  />
+                ) : (
+                  <div className="whitespace-pre-wrap text-gray-800">
+                    {selectedEmail.body}
+                  </div>
+                )}
+
+                {/* CTA */}
+                {selectedEmail.callToAction && (
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Call to Action:</p>
+                    <span className="inline-block px-4 py-2 bg-linear-to-br from-purple-600 to-pink-600 text-white rounded-lg font-medium">
+                      {selectedEmail.callToAction}
+                    </span>
+                  </div>
+                )}
+
+                {/* Metadata */}
+                {selectedEmail.metadata && (
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-semibold text-gray-700">Email Type:</span>
+                        <span className="ml-2 text-gray-600">{selectedEmail.metadata.emailType}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-700">Tone:</span>
+                        <span className="ml-2 text-gray-600">{selectedEmail.metadata.tone}</span>
+                      </div>
+                      {selectedEmail.metadata.estimatedReadTime && (
+                        <div>
+                          <span className="font-semibold text-gray-700">Read Time:</span>
+                          <span className="ml-2 text-gray-600">{selectedEmail.metadata.estimatedReadTime}</span>
+                        </div>
+                      )}
+                      {selectedEmail.emojiUsed && (
+                        <div>
+                          <span className="font-semibold text-gray-700">Emojis:</span>
+                          <span className="ml-2 text-gray-600">✓ Enabled</span>
+                        </div>
+                      )}
+                    </div>
+                    {selectedEmail.metadata.keywords && selectedEmail.metadata.keywords.length > 0 && (
+                      <div className="mt-4">
+                        <p className="font-semibold text-gray-700 mb-2">Keywords:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedEmail.metadata.keywords.map((keyword, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
