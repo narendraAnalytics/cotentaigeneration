@@ -31,6 +31,12 @@ export const blogPosts = pgTable('blog_posts', {
   userId: text('user_id')
     .notNull()
     .references(() => neonAuthUsers.id, { onDelete: 'cascade' }),
+
+  // Content type fields (NEW - supports both blog and email)
+  type: varchar('type', { length: 10 }).default('blog').notNull(),
+  emailType: varchar('email_type', { length: 50 }),
+  subjectLine: text('subject_line'),
+
   title: varchar('title', { length: 500 }).notNull(),
   slug: varchar('slug', { length: 600 }).unique(),
   content: text('content').notNull(),

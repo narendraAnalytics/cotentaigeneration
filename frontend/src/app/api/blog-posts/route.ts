@@ -18,11 +18,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch user's blog posts (newest first, without audio data to reduce payload size)
+    // Fetch user's blog posts and emails (newest first, without audio data to reduce payload size)
     const posts = await db
       .select({
         id: blogPosts.id,
         userId: blogPosts.userId,
+        type: blogPosts.type, // NEW: 'blog' or 'email'
+        emailType: blogPosts.emailType, // NEW: email category
+        subjectLine: blogPosts.subjectLine, // NEW: email subject
         title: blogPosts.title,
         slug: blogPosts.slug,
         content: blogPosts.content,
@@ -41,7 +44,7 @@ export async function GET(request: NextRequest) {
       .from(blogPosts)
       .where(eq(blogPosts.userId, userId))
       .orderBy(desc(blogPosts.createdAt))
-      .limit(5);
+      .limit(50); // Increased limit to show more content
 
     return NextResponse.json({ posts });
   } catch (error) {
@@ -54,13 +57,16 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/blog-posts - Save a new blog post
+ * POST /api/blog-posts - Save a new blog post or email
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
       userId,
+      type = 'blog', // Default to 'blog' for backward compatibility
+      emailType,
+      subjectLine,
       title,
       content,
       description,
@@ -85,11 +91,14 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
 
-    // Insert blog post
+    // Insert blog post or email
     const [newPost] = await db
       .insert(blogPosts)
       .values({
         userId,
+        type, // 'blog' or 'email'
+        emailType: emailType || null,
+        subjectLine: subjectLine || null,
         title,
         slug,
         content,
@@ -107,9 +116,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, post: newPost });
   } catch (error) {
-    console.error('Error saving blog post:', error);
+    console.error('Error saving content:', error);
     return NextResponse.json(
-      { error: 'Failed to save blog post' },
+      { error: 'Failed to save content' },
       { status: 500 }
     );
   }

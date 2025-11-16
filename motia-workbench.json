@@ -48,5 +48,22 @@
         "y": -30
       }
     }
+  },
+  {
+    "id": "email-generation",
+    "config": {
+      "steps\\get-email.step.ts": {
+        "x": -467,
+        "y": -174
+      },
+      "steps\\generate-email.step.ts": {
+        "x": -890,
+        "y": -326
+      },
+      "steps\\generate-email-content.step.ts": {
+        "x": -472,
+        "y": -356
+      }
+    }
   }
 ]

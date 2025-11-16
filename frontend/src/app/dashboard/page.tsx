@@ -4,13 +4,25 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Plus, Loader2, Music, Clock, Calendar } from "lucide-react";
+import { FileText, Plus, Loader2, Music, Clock, Calendar, Mail } from "lucide-react";
 import CreateBlogForm, { BlogGenerationRequest } from "@/components/CreateBlogForm";
+import CreateEmailForm from "@/components/CreateEmailForm";
 import BlogReader from "@/components/BlogReader";
-import { generateBlog, pollBlogContent, BlogContentResponse } from "@/lib/api";
+import {
+  generateBlog,
+  pollBlogContent,
+  BlogContentResponse,
+  generateEmail,
+  pollEmailContent,
+  EmailGenerationRequest,
+  EmailContentResponse
+} from "@/lib/api";
 
 interface BlogPost {
   id: string;
+  type: string; // 'blog' or 'email'
+  emailType: string | null; // Email category
+  subjectLine: string | null; // Email subject
   title: string;
   slug: string | null;
   content: string;
@@ -32,13 +44,16 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [contentType, setContentType] = useState<'all' | 'blog' | 'email'>('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateEmailForm, setShowCreateEmailForm] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState<{
     attempt: number;
     maxAttempts: number;
   } | null>(null);
   const [selectedBlog, setSelectedBlog] = useState<BlogContentResponse | null>(null);
+  const [selectedEmail, setSelectedEmail] = useState<EmailContentResponse | null>(null);
 
   useEffect(() => {
     console.log('🔍 Dashboard loaded, user:', user);
@@ -130,6 +145,54 @@ export default function DashboardPage() {
         error instanceof Error
           ? error.message
           : 'Failed to generate blog. Please try again.'
+      );
+    } finally {
+      setIsGenerating(false);
+      setGenerationProgress(null);
+    }
+  };
+
+  const handleCreateEmail = async (formData: EmailGenerationRequest) => {
+    try {
+      setIsGenerating(true);
+      setGenerationProgress({ attempt: 0, maxAttempts: 30 });
+
+      // Step 1: Start generation
+      console.log('🚀 Starting email generation...');
+      console.log('📝 Request data:', formData);
+
+      const generateResponse = await generateEmail(formData);
+      console.log('✅ Generation started:', generateResponse.id);
+
+      // Step 2: Poll for completion (no TTS wait for emails)
+      console.log('⏳ Waiting for email generation...');
+      const emailContent = await pollEmailContent(
+        generateResponse.id,
+        30,
+        3000,
+        (attempt, maxAttempts) => {
+          setGenerationProgress({ attempt, maxAttempts });
+        }
+      );
+
+      console.log('✅ Email generated successfully!');
+      console.log('📦 Email content received:', JSON.stringify(emailContent, null, 2));
+
+      // Step 3: Save to database
+      await saveEmailToDatabase(emailContent, formData);
+
+      // Step 4: Show email in reader
+      setSelectedEmail(emailContent);
+      setShowCreateEmailForm(false);
+
+      // Refresh posts list
+      await fetchUserPosts();
+    } catch (error) {
+      console.error('❌ Error generating email:', error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate email. Please try again.'
       );
     } finally {
       setIsGenerating(false);
@@ -232,6 +295,65 @@ export default function DashboardPage() {
       console.error('❌ Error saving blog:', error);
       // Don't throw - just log, so user can still see the blog
       alert('Warning: Blog generated successfully but failed to save to database. You can still read it below.');
+    }
+  };
+
+  const saveEmailToDatabase = async (
+    emailContent: EmailContentResponse,
+    formData: EmailGenerationRequest
+  ) => {
+    if (!user) {
+      console.error('❌ Cannot save: user not authenticated');
+      return;
+    }
+
+    try {
+      console.log('💾 Preparing to save email to database...');
+      console.log('User ID:', user.id);
+
+      const payload = {
+        userId: user.id,
+        type: 'email',
+        emailType: (formData.emailType || '').substring(0, 50), // Truncate to 50 chars (schema limit)
+        subjectLine: emailContent.subjectAlternatives.join(' | '), // Store all alternatives
+        title: emailContent.subject, // Main subject as title
+        content: emailContent.body,
+        description: emailContent.body.substring(0, 200), // First 200 chars
+        tone: (formData.tone || '').substring(0, 100), // Truncate to 100 chars (schema limit)
+        audience: (formData.targetAudience || '').substring(0, 100), // Truncate to 100 chars (schema limit)
+        audioData: null, // No audio for emails
+        audioDuration: null,
+        audioFileSize: null,
+        audioStatus: null,
+      };
+
+      console.log('📤 Sending email to database:', {
+        userId: payload.userId,
+        type: payload.type,
+        emailType: payload.emailType,
+        subject: payload.title,
+        contentLength: payload.content.length
+      });
+
+      const response = await fetch('/api/blog-posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Database save error response:', errorData);
+        throw new Error(errorData.error || 'Failed to save email to database');
+      }
+
+      const result = await response.json();
+      console.log('✅ Email saved to database:', result);
+    } catch (error) {
+      console.error('❌ Error saving email:', error);
+      alert('Warning: Email generated successfully but failed to save to database. You can still read it below.');
     }
   };
 
@@ -338,19 +460,74 @@ export default function DashboardPage() {
           </p>
         </motion.div>
 
-        {/* Create New Post Button */}
-        <motion.button
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setShowCreateForm(true)}
-          disabled={isGenerating}
-          className="mb-8 px-6 py-3 bg-linear-to-br from-purple-600 via-blue-600 to-pink-600 text-white rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+        {/* Filter Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 flex flex-wrap items-center gap-4"
         >
-          <Plus className="w-5 h-5" />
-          Create New Post
-        </motion.button>
+          <div className="flex gap-2 bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-md">
+            <button
+              onClick={() => setContentType('all')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                contentType === 'all'
+                  ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setContentType('blog')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                contentType === 'blog'
+                  ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Blogs
+            </button>
+            <button
+              onClick={() => setContentType('email')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                contentType === 'email'
+                  ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Emails
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Create Buttons */}
+        <div className="mb-8 flex flex-wrap gap-4">
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowCreateForm(true)}
+            disabled={isGenerating}
+            className="px-6 py-3 bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 text-white rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FileText className="w-5 h-5" />
+            Create New Blog
+          </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowCreateEmailForm(true)}
+            disabled={isGenerating}
+            className="px-6 py-3 bg-linear-to-r from-pink-600 via-purple-600 to-blue-600 text-white rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Mail className="w-5 h-5" />
+            Create New Email
+          </motion.button>
+        </div>
 
         {/* Generation Progress */}
         {isGenerating && generationProgress && (
@@ -385,23 +562,57 @@ export default function DashboardPage() {
         )}
 
         {/* Posts Grid */}
-        {posts.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 text-center shadow-lg"
-          >
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-              No blog posts yet
-            </h3>
-            <p className="text-gray-600">
-              Click "Create New Post" to start generating AI-powered content!
-            </p>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post, index) => (
+        {(() => {
+          // Filter posts by contentType
+          const filteredPosts = posts.filter(post =>
+            contentType === 'all' || post.type === contentType
+          );
+
+          if (filteredPosts.length === 0) {
+            return (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 text-center shadow-lg"
+              >
+                {contentType === 'all' ? (
+                  <>
+                    <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+                      No content yet
+                    </h3>
+                    <p className="text-gray-600">
+                      Create your first blog or email to get started!
+                    </p>
+                  </>
+                ) : contentType === 'blog' ? (
+                  <>
+                    <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+                      No blog posts yet
+                    </h3>
+                    <p className="text-gray-600">
+                      Click "Create New Blog" to start generating AI-powered blog content!
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+                      No emails yet
+                    </h3>
+                    <p className="text-gray-600">
+                      Click "Create New Email" to start generating AI-powered emails!
+                    </p>
+                  </>
+                )}
+              </motion.div>
+            );
+          }
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPosts.map((post, index) => (
               <motion.div
                 key={post.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -412,26 +623,49 @@ export default function DashboardPage() {
                 onClick={() => handlePostClick(post)}
                 className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
               >
-                {/* Status Badge */}
+                {/* Type Badge & Status */}
                 <div className="flex items-center justify-between mb-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      post.status === 'published'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}
-                  >
-                    {post.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {post.type === 'email' ? (
+                      <Mail className="w-5 h-5 text-pink-600" />
+                    ) : (
+                      <FileText className="w-5 h-5 text-purple-600" />
+                    )}
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        post.status === 'published'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}
+                    >
+                      {post.status}
+                    </span>
+                  </div>
                   {post.audioUrl && (
                     <Music className="w-5 h-5 text-purple-600" />
                   )}
                 </div>
 
+                {/* Email Type Badge (for emails) */}
+                {post.type === 'email' && post.emailType && (
+                  <div className="mb-2">
+                    <span className="px-2 py-1 bg-pink-100 text-pink-700 rounded text-xs font-medium">
+                      {post.emailType}
+                    </span>
+                  </div>
+                )}
+
                 {/* Title */}
                 <h3 className="text-xl font-bold bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-2 line-clamp-2">
                   {post.title}
                 </h3>
+
+                {/* Subject Line Alternatives (for emails) */}
+                {post.type === 'email' && post.subjectLine && (
+                  <p className="text-xs text-gray-500 mb-2">
+                    Alternatives: {post.subjectLine.split(' | ').slice(0, 2).join(', ')}...
+                  </p>
+                )}
 
                 {/* Description */}
                 {post.description && (
@@ -456,7 +690,8 @@ export default function DashboardPage() {
               </motion.div>
             ))}
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Create Blog Form Modal */}
@@ -465,6 +700,17 @@ export default function DashboardPage() {
           <CreateBlogForm
             onClose={() => !isGenerating && setShowCreateForm(false)}
             onSubmit={handleCreateBlog}
+            isGenerating={isGenerating}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Create Email Form Modal */}
+      <AnimatePresence>
+        {showCreateEmailForm && (
+          <CreateEmailForm
+            onClose={() => !isGenerating && setShowCreateEmailForm(false)}
+            onSubmit={handleCreateEmail}
             isGenerating={isGenerating}
           />
         )}

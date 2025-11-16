@@ -6,9 +6,11 @@ import { BlogArticle, ArticleSection, GenerationOptionsSchema } from '../src/typ
 /**
  * Input Schema for Event Step 2
  * Receives enhanced data from Event Step 1 (enhance-prompt)
+ * Now supports both blog and email content types
  */
 const GenerateContentInputSchema = z.object({
   requestId: z.string(),
+  contentType: z.enum(['blog', 'email']).default('blog').optional(), // Support both blog and email
   originalRequest: z.object({
     topic: z.string(),
     keywords: z.array(z.string()),
@@ -53,11 +55,21 @@ export const config: EventConfig = {
  * Uses Gemini AI with Google Search to generate comprehensive blog article
  */
 export const handler: Handlers['GenerateContentWithSearch'] = async (input, { emit, logger, state }) => {
-  const { requestId, originalRequest, enhancedData, options } = input;
+  const { requestId, contentType = 'blog', originalRequest, enhancedData, options } = input;
+
+  // IMPORTANT: Skip if this is an email request (let email handler process it)
+  if (contentType !== 'blog') {
+    logger.info('Skipping blog generation - contentType is not blog', {
+      requestId,
+      contentType
+    });
+    return; // Exit early, don't process email content
+  }
 
   try {
     logger.info('Starting blog content generation', {
       requestId,
+      contentType,
       enhancedTitle: enhancedData.enhancedTitle,
       keywordCount: enhancedData.enhancedKeywords.length
     });

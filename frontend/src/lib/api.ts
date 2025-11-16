@@ -270,3 +270,148 @@ export async function suggestBlogMetadata(
     throw error;
   }
 }
+
+// ========================================
+// EMAIL GENERATION API FUNCTIONS
+// ========================================
+
+export interface EmailGenerationRequest {
+  topic: string;
+  emailType: 'marketing' | 'cold-outreach' | 'newsletter' | 'follow-up';
+  keywords: string[];
+  targetAudience?: string;
+  additionalContext?: string;
+  tone: 'professional' | 'casual' | 'formal' | 'friendly';
+}
+
+export interface EmailGenerationResponse {
+  id: string;
+  status: string;
+  message?: string;
+}
+
+export interface EmailContentResponse {
+  id: string;
+  status: string;
+  subject: string;
+  subjectAlternatives: string[];
+  body: string;
+  emailType: string;
+  callToAction?: string;
+  metadata: {
+    emailType: string;
+    estimatedReadTime?: string;
+    tone: string;
+    keywords: string[];
+  };
+  generatedAt: string;
+}
+
+/**
+ * Start email generation
+ */
+export async function generateEmail(
+  request: EmailGenerationRequest
+): Promise<EmailGenerationResponse> {
+  try {
+    console.log('🚀 Sending email generation request:', {
+      url: `${BACKEND_URL}/api/generate-email`,
+      payload: request
+    });
+
+    const response = await fetch(`${BACKEND_URL}/api/generate-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+
+    console.log('📡 Response status:', response.status, response.statusText);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Backend error response:', errorData);
+      throw new Error(
+        errorData.error || `HTTP ${response.status}: ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    console.log('✅ Email generation started:', data);
+    return data;
+  } catch (error) {
+    console.error("❌ Error generating email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get email content by request ID
+ * Returns 200 when ready, 404 when still processing
+ */
+export async function getEmailContent(
+  requestId: string
+): Promise<EmailContentResponse | null> {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/email/${requestId}`);
+
+    if (response.status === 404) {
+      // Still generating
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching email content:", error);
+    throw error;
+  }
+}
+
+/**
+ * Poll for email content until ready
+ * No TTS for emails, so faster than blog polling
+ * @param requestId The request ID to poll
+ * @param maxAttempts Maximum number of polling attempts (default: 30)
+ * @param intervalMs Polling interval in milliseconds (default: 3000)
+ */
+export async function pollEmailContent(
+  requestId: string,
+  maxAttempts = 30,
+  intervalMs = 3000,
+  onProgress?: (attempt: number, maxAttempts: number) => void
+): Promise<EmailContentResponse> {
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    attempts++;
+
+    if (onProgress) {
+      onProgress(attempts, maxAttempts);
+    }
+
+    const content = await getEmailContent(requestId);
+
+    if (content) {
+      console.log('✅ Email content ready!');
+      return content;
+    }
+
+    console.log(`⏳ Email generating... (attempt ${attempts}/${maxAttempts})`);
+
+    // Wait before next attempt
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+
+  // Timeout reached
+  throw new Error(
+    `Email generation timed out after ${maxAttempts} attempts (${
+      (maxAttempts * intervalMs) / 1000
+    } seconds)`
+  );
+}
