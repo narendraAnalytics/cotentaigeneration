@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
         type: blogPosts.type, // NEW: 'blog' or 'email'
         emailType: blogPosts.emailType, // NEW: email category
         subjectLine: blogPosts.subjectLine, // NEW: email subject
+        requestId: blogPosts.requestId, // Original request ID from generation
         title: blogPosts.title,
         slug: blogPosts.slug,
         content: blogPosts.content,
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest) {
       type = 'blog', // Default to 'blog' for backward compatibility
       emailType,
       subjectLine,
+      requestId, // Original request ID from generation
       title,
       content,
       description,
@@ -109,6 +111,7 @@ export async function POST(request: NextRequest) {
         type, // 'blog' or 'email'
         emailType: emailType || null,
         subjectLine: subjectLine || null,
+        requestId: requestId || null, // Store original request ID from generation
         title,
         slug,
         content,

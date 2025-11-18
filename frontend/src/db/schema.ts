@@ -37,6 +37,9 @@ export const blogPosts = pgTable('blog_posts', {
   emailType: varchar('email_type', { length: 50 }),
   subjectLine: text('subject_line'),
 
+  // Request ID from generation (for retrieving from Motia state)
+  requestId: varchar('request_id', { length: 100 }),
+
   title: varchar('title', { length: 500 }).notNull(),
   slug: varchar('slug', { length: 600 }).unique(),
   content: text('content').notNull(),

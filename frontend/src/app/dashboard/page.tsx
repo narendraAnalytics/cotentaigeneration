@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Plus, Loader2, Music, Clock, Calendar, Mail, X } from "lucide-react";
+import { FileText, Plus, Loader2, Music, Clock, Calendar, Mail, X, Send, ChevronDown, ChevronUp } from "lucide-react";
 import CreateBlogForm, { BlogGenerationRequest } from "@/components/CreateBlogForm";
 import CreateEmailForm from "@/components/CreateEmailForm";
 import BlogReader from "@/components/BlogReader";
@@ -15,7 +15,8 @@ import {
   generateEmail,
   pollEmailContent,
   EmailGenerationRequest,
-  EmailContentResponse
+  EmailContentResponse,
+  sendGeneratedEmail
 } from "@/lib/api";
 
 interface BlogPost {
@@ -23,6 +24,7 @@ interface BlogPost {
   type: string; // 'blog' or 'email'
   emailType: string | null; // Email category
   subjectLine: string | null; // Email subject
+  requestId: string | null; // Original request ID from generation (for Motia state)
   title: string;
   slug: string | null;
   content: string;
@@ -35,6 +37,7 @@ interface BlogPost {
   audioDuration: number | null;
   audioFileSize: number | null;
   audioStatus: string | null;
+  htmlContent: string | null; // HTML version of email content
   createdAt: string;
   updatedAt: string;
 }
@@ -55,6 +58,12 @@ export default function DashboardPage() {
   const [selectedBlog, setSelectedBlog] = useState<BlogContentResponse | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<EmailContentResponse | null>(null);
   const [emailViewMode, setEmailViewMode] = useState<'plain' | 'html'>('plain'); // NEW: Toggle between plain/HTML
+
+  // Send email form state
+  const [sendFormVisible, setSendFormVisible] = useState<Record<string, boolean>>({});
+  const [sendFormData, setSendFormData] = useState<Record<string, { recipientEmail: string; subjectLine: string; fromName: string }>>({});
+  const [sendStatus, setSendStatus] = useState<Record<string, 'idle' | 'sending' | 'success' | 'error'>>({});
+  const [sendError, setSendError] = useState<Record<string, string>>({});
 
   useEffect(() => {
     console.log('🔍 Dashboard loaded, user:', user);
@@ -250,6 +259,7 @@ export default function DashboardPage() {
 
       const payload = {
         userId: user.id,
+        requestId: blogContent.id, // Store original request ID
         title,
         content,
         description,
@@ -317,6 +327,7 @@ export default function DashboardPage() {
         type: 'email',
         emailType: (formData.emailType || '').substring(0, 50), // Truncate to 50 chars (schema limit)
         subjectLine: emailContent.subjectAlternatives.join(' | '), // Store all alternatives
+        requestId: emailContent.id, // Store original request ID for email sending
         title: emailContent.subject, // Main subject as title
         content: emailContent.body,
         description: emailContent.body.substring(0, 200), // First 200 chars
@@ -432,6 +443,82 @@ export default function DashboardPage() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const toggleSendForm = (postId: string, post: BlogPost) => {
+    const isVisible = !sendFormVisible[postId];
+    setSendFormVisible({ ...sendFormVisible, [postId]: isVisible });
+
+    // Initialize form data if opening for first time
+    if (isVisible && !sendFormData[postId]) {
+      const alternatives = post.subjectLine?.split(' | ') || [post.title];
+      setSendFormData({
+        ...sendFormData,
+        [postId]: {
+          recipientEmail: '',
+          subjectLine: alternatives[0] || post.title,
+          fromName: ''
+        }
+      });
+    }
+  };
+
+  const handleSendEmail = async (post: BlogPost) => {
+    const formData = sendFormData[post.id];
+
+    if (!formData || !formData.recipientEmail) {
+      setSendError({ ...sendError, [post.id]: 'Please enter a recipient email address' });
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.recipientEmail)) {
+      setSendError({ ...sendError, [post.id]: 'Please enter a valid email address' });
+      return;
+    }
+
+    try {
+      setSendStatus({ ...sendStatus, [post.id]: 'sending' });
+      setSendError({ ...sendError, [post.id]: '' });
+
+      console.log('📧 Sending email for post:', post.id, 'requestId:', post.requestId);
+
+      const result = await sendGeneratedEmail({
+        requestId: post.requestId || post.id, // Use requestId, fallback to post.id for old records
+        recipientEmail: formData.recipientEmail,
+        subjectLine: formData.subjectLine,
+        fromName: formData.fromName || undefined,
+        body: post.content, // Send the email body from database
+        htmlBody: post.htmlContent || undefined // Send HTML version if available
+      });
+
+      if (result.success) {
+        console.log('✅ Email sent successfully!', result);
+        setSendStatus({ ...sendStatus, [post.id]: 'success' });
+
+        // Reset form after 2 seconds
+        setTimeout(() => {
+          setSendFormVisible({ ...sendFormVisible, [post.id]: false });
+          setSendStatus({ ...sendStatus, [post.id]: 'idle' });
+        }, 2000);
+      } else {
+        setSendStatus({ ...sendStatus, [post.id]: 'error' });
+
+        // Format user-friendly error message
+        let errorMessage = result.error || 'Failed to send email';
+
+        // Check if this is a Resend testing limitation error
+        if (errorMessage.includes('testing emails') || errorMessage.includes('verify a domain')) {
+          errorMessage = `⚠️ Testing Mode: You can only send emails to your verified email address (${user?.primaryEmail || 'your account email'}).\n\nTo send to any recipient, verify your domain at resend.com/domains and update the RESEND_FROM_EMAIL setting.`;
+        }
+
+        setSendError({ ...sendError, [post.id]: errorMessage });
+      }
+    } catch (error) {
+      setSendStatus({ ...sendStatus, [post.id]: 'error' });
+      setSendError({ ...sendError, [post.id]: error instanceof Error ? error.message : 'Unknown error' });
+    }
   };
 
   if (isLoading) {
@@ -624,75 +711,217 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02, y: -8 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handlePostClick(post)}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300"
               >
-                {/* Type Badge & Status */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    {post.type === 'email' ? (
-                      <Mail className="w-5 h-5 text-pink-600" />
-                    ) : (
-                      <FileText className="w-5 h-5 text-purple-600" />
+                {/* Clickable area for viewing */}
+                <div onClick={() => handlePostClick(post)} className="cursor-pointer">
+                  {/* Type Badge & Status */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      {post.type === 'email' ? (
+                        <Mail className="w-5 h-5 text-pink-600" />
+                      ) : (
+                        <FileText className="w-5 h-5 text-purple-600" />
+                      )}
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          post.status === 'published'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}
+                      >
+                        {post.status}
+                      </span>
+                    </div>
+                    {post.audioUrl && (
+                      <Music className="w-5 h-5 text-purple-600" />
                     )}
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        post.status === 'published'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}
-                    >
-                      {post.status}
-                    </span>
                   </div>
-                  {post.audioUrl && (
-                    <Music className="w-5 h-5 text-purple-600" />
-                  )}
-                </div>
 
-                {/* Email Type Badge (for emails) */}
-                {post.type === 'email' && post.emailType && (
-                  <div className="mb-2">
-                    <span className="px-2 py-1 bg-pink-100 text-pink-700 rounded text-xs font-medium">
-                      {post.emailType}
-                    </span>
-                  </div>
-                )}
-
-                {/* Title */}
-                <h3 className="text-xl font-bold bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-2 line-clamp-2">
-                  {post.title}
-                </h3>
-
-                {/* Subject Line Alternatives (for emails) */}
-                {post.type === 'email' && post.subjectLine && (
-                  <p className="text-xs text-gray-500 mb-2">
-                    Alternatives: {post.subjectLine.split(' | ').slice(0, 2).join(', ')}...
-                  </p>
-                )}
-
-                {/* Description */}
-                {post.description && (
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {post.description}
-                  </p>
-                )}
-
-                {/* Meta Info */}
-                <div className="flex items-center gap-4 text-sm text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(post.createdAt)}
-                  </div>
-                  {post.audioDuration && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {formatDuration(post.audioDuration)}
+                  {/* Email Type Badge (for emails) */}
+                  {post.type === 'email' && post.emailType && (
+                    <div className="mb-2">
+                      <span className="px-2 py-1 bg-pink-100 text-pink-700 rounded text-xs font-medium">
+                        {post.emailType}
+                      </span>
                     </div>
                   )}
+
+                  {/* Title */}
+                  <h3 className="text-xl font-bold bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-2 line-clamp-2">
+                    {post.title}
+                  </h3>
+
+                  {/* Subject Line Alternatives (for emails) */}
+                  {post.type === 'email' && post.subjectLine && (
+                    <p className="text-xs text-gray-500 mb-2">
+                      Alternatives: {post.subjectLine.split(' | ').slice(0, 2).join(', ')}...
+                    </p>
+                  )}
+
+                  {/* Description */}
+                  {post.description && (
+                    <p className="text-gray-600 mb-4 line-clamp-3">
+                      {post.description}
+                    </p>
+                  )}
+
+                  {/* Meta Info */}
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {formatDate(post.createdAt)}
+                    </div>
+                    {post.audioDuration && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {formatDuration(post.audioDuration)}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* Send Email Section (for emails only) */}
+                {post.type === 'email' && (
+                  <div className="mt-4 pt-4 border-t border-gray-200" onClick={(e) => e.stopPropagation()}>
+                    {/* Toggle Button */}
+                    <button
+                      onClick={() => toggleSendForm(post.id, post)}
+                      className="w-full flex items-center justify-between px-4 py-2 bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Send className="w-4 h-4" />
+                        <span>Send Email</span>
+                      </div>
+                      {sendFormVisible[post.id] ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </button>
+
+                    {/* Send Form (collapsible) */}
+                    <AnimatePresence>
+                      {sendFormVisible[post.id] && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="mt-3 space-y-3">
+                            {/* Recipient Email */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Recipient Email *
+                              </label>
+                              <input
+                                type="email"
+                                value={sendFormData[post.id]?.recipientEmail || ''}
+                                onChange={(e) => setSendFormData({
+                                  ...sendFormData,
+                                  [post.id]: {
+                                    ...sendFormData[post.id],
+                                    recipientEmail: e.target.value
+                                  }
+                                })}
+                                placeholder="recipient@example.com"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                                disabled={sendStatus[post.id] === 'sending'}
+                              />
+                            </div>
+
+                            {/* Subject Line Selector */}
+                            <div>
+                              <label htmlFor={`subject-${post.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                Subject Line
+                              </label>
+                              <select
+                                id={`subject-${post.id}`}
+                                value={sendFormData[post.id]?.subjectLine || ''}
+                                onChange={(e) => setSendFormData({
+                                  ...sendFormData,
+                                  [post.id]: {
+                                    ...sendFormData[post.id],
+                                    subjectLine: e.target.value
+                                  }
+                                })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                                disabled={sendStatus[post.id] === 'sending'}
+                              >
+                                {(post.subjectLine?.split(' | ') || [post.title]).map((subject, idx) => (
+                                  <option key={idx} value={subject}>
+                                    {subject}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* From Name (Optional) */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                From Name (Optional)
+                              </label>
+                              <input
+                                type="text"
+                                value={sendFormData[post.id]?.fromName || ''}
+                                onChange={(e) => setSendFormData({
+                                  ...sendFormData,
+                                  [post.id]: {
+                                    ...sendFormData[post.id],
+                                    fromName: e.target.value
+                                  }
+                                })}
+                                placeholder="Your Name or Company"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                                disabled={sendStatus[post.id] === 'sending'}
+                              />
+                            </div>
+
+                            {/* Error Message */}
+                            {sendError[post.id] && (
+                              <div className="text-sm bg-red-50 border border-red-200 px-4 py-3 rounded-lg">
+                                <p className="text-red-800 font-medium whitespace-pre-wrap leading-relaxed">
+                                  {sendError[post.id]}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Success Message */}
+                            {sendStatus[post.id] === 'success' && (
+                              <div className="text-sm bg-green-50 border border-green-200 px-4 py-3 rounded-lg">
+                                <p className="text-green-800 font-medium">
+                                  ✅ Email sent successfully!
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Send Button */}
+                            <button
+                              onClick={() => handleSendEmail(post)}
+                              disabled={sendStatus[post.id] === 'sending' || sendStatus[post.id] === 'success'}
+                              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {sendStatus[post.id] === 'sending' ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <span>Sending...</span>
+                                </>
+                              ) : sendStatus[post.id] === 'success' ? (
+                                <span>Sent!</span>
+                              ) : (
+                                <>
+                                  <Send className="w-4 h-4" />
+                                  <span>Send Email</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>

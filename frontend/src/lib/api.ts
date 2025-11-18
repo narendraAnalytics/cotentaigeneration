@@ -422,3 +422,48 @@ export async function pollEmailContent(
     } seconds)`
   );
 }
+
+/**
+ * Send generated email to any recipient
+ */
+export async function sendGeneratedEmail(params: {
+  requestId: string;
+  recipientEmail: string;
+  subjectLine: string;
+  fromName?: string;
+  body: string; // Plain text email body
+  htmlBody?: string; // HTML email body (optional)
+}): Promise<{ success: boolean; message?: string; messageId?: string; error?: string }> {
+  try {
+    console.log('📧 Sending generated email:', {
+      ...params,
+      bodyLength: params.body.length,
+      hasHtml: !!params.htmlBody
+    });
+
+    const response = await fetch(`${BACKEND_URL}/api/send-generated-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.error || "Failed to send email",
+      };
+    }
+
+    console.log('✅ Email sent successfully:', data);
+    return data;
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}

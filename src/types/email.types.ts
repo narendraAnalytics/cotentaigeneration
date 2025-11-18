@@ -134,3 +134,45 @@ export const EmailResponseSchema = z.object({
 });
 
 export type EmailResponse = z.infer<typeof EmailResponseSchema>;
+
+/**
+ * Send Generated Email Request Schema
+ * Schema for sending a generated email to a recipient
+ */
+export const SendGeneratedEmailRequestSchema = z.object({
+  requestId: z.string().describe('The ID of the generated email'),
+
+  recipientEmail: z.string().email().describe('Valid email address to send the email to'),
+
+  subjectLine: z.string().min(1).describe('The subject line to use (chosen from alternatives)'),
+
+  fromName: z.string().optional().describe('Optional custom sender name (e.g., "John from Company")'),
+
+  body: z.string().min(1).describe('Plain text email body content'),
+
+  htmlBody: z.string().optional().describe('HTML formatted email body (optional)')
+});
+
+export type SendGeneratedEmailRequest = z.infer<typeof SendGeneratedEmailRequestSchema>;
+
+/**
+ * Send Email Response Schema
+ * Response when sending an email
+ */
+export const SendEmailResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  messageId: z.string().optional()
+});
+
+export type SendEmailResponse = z.infer<typeof SendEmailResponseSchema>;
+
+/**
+ * Send Email Error Response Schema
+ */
+export const SendEmailErrorResponseSchema = z.object({
+  success: z.boolean(),
+  error: z.string()
+});
+
+export type SendEmailErrorResponse = z.infer<typeof SendEmailErrorResponseSchema>;

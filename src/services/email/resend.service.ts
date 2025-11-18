@@ -30,16 +30,69 @@ export class ResendEmailService {
       const htmlContent = this.convertArticleToHTML(article);
 
       // Send email via Resend
-      const data = await this.resend.emails.send({
+      const { data, error } = await this.resend.emails.send({
         from: this.fromEmail,
         to: toEmail,
         subject: `Your AI-Generated Blog: ${article.title}`,
         html: htmlContent
       });
 
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
       return {
         success: true,
-        messageId: data.id
+        messageId: data?.id
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send email'
+      };
+    }
+  }
+
+  /**
+   * Send generated email content via email
+   */
+  async sendGeneratedEmail(params: {
+    toEmail: string;
+    subject: string;
+    htmlBody: string;
+    textBody: string;
+    fromName?: string;
+  }): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    try {
+      const { toEmail, subject, htmlBody, textBody, fromName } = params;
+
+      // Prepare the "from" field
+      const from = fromName
+        ? `${fromName} <${this.fromEmail}>`
+        : this.fromEmail;
+
+      // Send email via Resend
+      const { data, error } = await this.resend.emails.send({
+        from,
+        to: toEmail,
+        subject,
+        html: htmlBody,
+        text: textBody
+      });
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return {
+        success: true,
+        messageId: data?.id
       };
     } catch (error) {
       return {
