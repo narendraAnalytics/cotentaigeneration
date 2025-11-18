@@ -21,33 +21,33 @@ const navItems = [
     name: "Home",
     href: "#home",
     icon: Home,
-    gradient: "from-purple-500 to-pink-500",
-    hoverGradient: "hover:from-purple-600 hover:to-pink-600",
-    iconColor: "text-purple-500"
+    gradient: "from-amber-500 to-rose-500",
+    hoverGradient: "hover:from-amber-600 hover:to-rose-600",
+    iconColor: "text-amber-500"
   },
   {
     name: "Features",
     href: "#features",
     icon: Sparkles,
-    gradient: "from-blue-500 to-cyan-400",
-    hoverGradient: "hover:from-blue-600 hover:to-cyan-500",
-    iconColor: "text-blue-500"
+    gradient: "from-orange-500 to-pink-400",
+    hoverGradient: "hover:from-orange-600 hover:to-pink-500",
+    iconColor: "text-orange-500"
   },
   {
     name: "Pricing",
     href: "#pricing",
     icon: DollarSign,
-    gradient: "from-orange-500 to-red-500",
-    hoverGradient: "hover:from-orange-600 hover:to-red-600",
-    iconColor: "text-orange-500"
+    gradient: "from-yellow-500 to-amber-500",
+    hoverGradient: "hover:from-yellow-600 hover:to-amber-600",
+    iconColor: "text-yellow-600"
   },
   {
     name: "Contact",
     href: "#contact",
     icon: Mail,
-    gradient: "from-green-500 to-emerald-400",
-    hoverGradient: "hover:from-green-600 hover:to-emerald-500",
-    iconColor: "text-green-500"
+    gradient: "from-rose-500 to-pink-400",
+    hoverGradient: "hover:from-rose-600 hover:to-pink-500",
+    iconColor: "text-rose-500"
   },
 ];
 
@@ -113,10 +113,10 @@ export default function Navbar() {
               }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-linear-to-br from-purple-600 via-blue-600 to-pink-600 rounded-lg blur-sm opacity-50" />
-              <Zap className="w-8 h-8 text-purple-600 relative z-10" strokeWidth={2.5} />
+              <div className="absolute inset-0 bg-linear-to-br from-amber-500 via-orange-500 to-rose-500 rounded-lg blur-sm opacity-50" />
+              <Zap className="w-8 h-8 text-amber-600 relative z-10" strokeWidth={2.5} />
             </motion.div>
-            <span className="text-2xl font-bold bg-linear-to-br from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-linear-to-br from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent">
               AI Copywrite
             </span>
           </motion.div>
@@ -142,16 +142,16 @@ export default function Navbar() {
                     }}
                     transition={{ duration: 0.5 }}
                   >
-                    <Home className="w-5 h-5 text-purple-500 transition-all group-hover:scale-110" strokeWidth={2.5} />
+                    <Home className="w-5 h-5 text-amber-500 transition-all group-hover:scale-110" strokeWidth={2.5} />
                   </motion.div>
-                  <span className="font-semibold bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent transition-all duration-300">
+                  <span className="font-semibold bg-linear-to-r from-amber-500 to-rose-500 bg-clip-text text-transparent transition-all duration-300">
                     Home
                   </span>
                 </div>
 
                 {/* Hover underline with gradient */}
                 <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-purple-500 to-pink-500 rounded-full"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-amber-500 to-rose-500 rounded-full"
                   initial={{ scaleX: 0 }}
                   whileHover={{ scaleX: 1 }}
                   transition={{ duration: 0.3 }}
@@ -206,9 +206,9 @@ export default function Navbar() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.6 }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-100 via-blue-100 to-pink-100"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center text-white font-semibold text-sm">
                     {user.displayName?.[0]?.toUpperCase() || user.primaryEmail?.[0]?.toUpperCase() || "U"}
                   </div>
                   <span className="text-sm font-medium text-gray-700">
@@ -238,7 +238,7 @@ export default function Navbar() {
                 className="hidden md:block relative px-6 py-2.5 rounded-xl font-semibold text-white overflow-hidden group"
               >
                 {/* Animated gradient background */}
-                <div className="absolute inset-0 bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 group-hover:from-purple-500 group-hover:via-blue-500 group-hover:to-pink-500 transition-all duration-300" />
+                <div className="absolute inset-0 bg-linear-to-r from-amber-500 via-orange-500 to-rose-500 group-hover:from-amber-400 group-hover:via-orange-400 group-hover:to-rose-400 transition-all duration-300" />
 
                 {/* Shimmer effect */}
                 <motion.div
@@ -274,7 +274,7 @@ export default function Navbar() {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-xl bg-linear-to-r from-purple-100 via-blue-100 to-pink-100"
+            className="md:hidden p-2 rounded-xl bg-linear-to-r from-amber-100 via-orange-100 to-rose-100"
           >
             <AnimatePresence mode="wait">
               {isOpen ? (
@@ -285,7 +285,7 @@ export default function Navbar() {
                   exit={{ rotate: 90, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <X className="w-6 h-6 text-purple-600" />
+                  <X className="w-6 h-6 text-amber-600" />
                 </motion.div>
               ) : (
                 <motion.div
@@ -295,7 +295,7 @@ export default function Navbar() {
                   exit={{ rotate: -90, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Menu className="w-6 h-6 text-purple-600" />
+                  <Menu className="w-6 h-6 text-amber-600" />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -331,9 +331,9 @@ export default function Navbar() {
                     whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.2 }}
                     transition={{ duration: 0.5 }}
                   >
-                    <Home className="w-5 h-5 text-purple-500" strokeWidth={2} />
+                    <Home className="w-5 h-5 text-amber-500" strokeWidth={2} />
                   </motion.div>
-                  <span className="font-semibold bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Home</span>
+                  <span className="font-semibold bg-linear-to-r from-amber-500 to-rose-500 bg-clip-text text-transparent">Home</span>
                 </motion.button>
               ) : (
                 // Show full navigation on landing page mobile menu
@@ -368,9 +368,9 @@ export default function Navbar() {
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: navItems.length * 0.1 }}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-100 via-blue-100 to-pink-100"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100"
                     >
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 flex items-center justify-center text-white font-semibold">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center text-white font-semibold">
                         {user.displayName?.[0]?.toUpperCase() || user.primaryEmail?.[0]?.toUpperCase() || "U"}
                       </div>
                       <div>
@@ -399,7 +399,7 @@ export default function Navbar() {
                     transition={{ delay: navItems.length * 0.1 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleGetStarted}
-                    className="w-full mt-2 px-4 py-3 rounded-xl font-semibold text-white bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 flex items-center justify-center gap-2"
+                    className="w-full mt-2 px-4 py-3 rounded-xl font-semibold text-white bg-linear-to-r from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center gap-2"
                   >
                     <motion.div
                       animate={{ rotate: isNavigating ? 360 : 0 }}

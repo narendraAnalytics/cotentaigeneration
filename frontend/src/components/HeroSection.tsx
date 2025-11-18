@@ -59,7 +59,7 @@ export default function HeroSection() {
             opacity: [0.3, 0.5, 0.3],
           }}
           transition={{ duration: 8, repeat: Infinity }}
-          className="absolute -top-40 -right-40 w-96 h-96 bg-linear-to-br from-purple-400 to-pink-400 rounded-full blur-3xl"
+          className="absolute -top-40 -right-40 w-96 h-96 bg-linear-to-br from-amber-400 to-orange-400 rounded-full blur-3xl"
         />
         <motion.div
           animate={{
@@ -67,7 +67,7 @@ export default function HeroSection() {
             opacity: [0.3, 0.5, 0.3],
           }}
           transition={{ duration: 10, repeat: Infinity }}
-          className="absolute -bottom-40 -left-40 w-96 h-96 bg-linear-to-br from-blue-400 to-cyan-400 rounded-full blur-3xl"
+          className="absolute -bottom-40 -left-40 w-96 h-96 bg-linear-to-br from-rose-400 to-pink-400 rounded-full blur-3xl"
         />
       </div>
 
@@ -85,12 +85,12 @@ export default function HeroSection() {
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           className="relative p-6 rounded-2xl bg-white/40 backdrop-blur-md border border-white/50 shadow-xl hover:shadow-2xl transition-all"
         >
-          <div className="absolute inset-0 bg-linear-to-br from-purple-500/20 to-pink-500/20 rounded-2xl" />
+          <div className="absolute inset-0 bg-linear-to-br from-amber-500/20 to-yellow-500/20 rounded-2xl" />
           <div className="relative">
-            <div className="w-12 h-12 mb-3 rounded-xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+            <div className="w-12 h-12 mb-3 rounded-xl bg-linear-to-br from-amber-500 to-yellow-500 flex items-center justify-center">
               <FileText className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
-            <h3 className="font-bold text-lg bg-linear-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h3 className="font-bold text-lg bg-linear-to-r from-amber-300 to-yellow-600 bg-clip-text text-transparent">
               AI Blog
             </h3>
             <p className="text-sm text-gray-600 mt-1">Create engaging posts</p>
@@ -111,12 +111,12 @@ export default function HeroSection() {
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           className="relative p-6 rounded-2xl bg-white/40 backdrop-blur-md border border-white/50 shadow-xl hover:shadow-2xl transition-all"
         >
-          <div className="absolute inset-0 bg-linear-to-br from-blue-500/20 to-cyan-400/20 rounded-2xl" />
+          <div className="absolute inset-0 bg-linear-to-br from-rose-500/20 to-pink-400/20 rounded-2xl" />
           <div className="relative">
-            <div className="w-12 h-12 mb-3 rounded-xl bg-linear-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
+            <div className="w-12 h-12 mb-3 rounded-xl bg-linear-to-br from-rose-500 to-pink-400 flex items-center justify-center">
               <Mail className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
-            <h3 className="font-bold text-lg bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            <h3 className="font-bold text-lg bg-linear-to-r from-rose-600 to-pink-500 bg-clip-text text-transparent">
               Email
             </h3>
             <p className="text-sm text-gray-600 mt-1">Craft perfect emails</p>
@@ -137,12 +137,12 @@ export default function HeroSection() {
           transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           className="relative p-6 rounded-2xl bg-white/40 backdrop-blur-md border border-white/50 shadow-xl hover:shadow-2xl transition-all"
         >
-          <div className="absolute inset-0 bg-linear-to-br from-orange-500/20 to-red-500/20 rounded-2xl" />
+          <div className="absolute inset-0 bg-linear-to-br from-orange-500/20 to-amber-500/20 rounded-2xl" />
           <div className="relative">
-            <div className="w-12 h-12 mb-3 rounded-xl bg-linear-to-br from-orange-500 to-red-500 flex items-center justify-center">
+            <div className="w-12 h-12 mb-3 rounded-xl bg-linear-to-br from-orange-500 to-amber-500 flex items-center justify-center">
               <Lightbulb className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
-            <h3 className="font-bold text-lg bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+            <h3 className="font-bold text-lg bg-linear-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
               Startup Tips
             </h3>
             <p className="text-sm text-gray-600 mt-1">Grow your business</p>
@@ -158,7 +158,7 @@ export default function HeroSection() {
           transition={{ duration: 0.8 }}
         >
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-tight">
-            <span className="bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent">
               Transform Ideas into{" "}
             </span>
             <span className="inline-block relative">
@@ -169,13 +169,13 @@ export default function HeroSection() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5 }}
-                  className="inline-block text-4xl sm:text-5xl md:text-6xl lg:text-7xl bg-linear-to-r from-cyan-400 via-pink-500 to-purple-600 bg-clip-text text-transparent font-extrabold"
+                  className="inline-block text-4xl sm:text-5xl md:text-6xl lg:text-7xl bg-linear-to-r from-yellow-400 via-orange-500 to-pink-500 bg-clip-text text-transparent font-extrabold"
                 >
                   {rotatingWords[currentWordIndex]}
                 </motion.span>
               </AnimatePresence>
             </span>
-            <span className="bg-linear-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent">
               {" "}with AI
             </span>
           </h1>
@@ -197,13 +197,13 @@ export default function HeroSection() {
           transition={{ delay: 0.6, duration: 0.6 }}
         >
           <motion.button
-            whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(147, 51, 234, 0.3)" }}
+            whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(251, 146, 60, 0.3)" }}
             whileTap={{ scale: 0.95 }}
             onClick={handleGetStarted}
             className="relative px-8 py-4 rounded-2xl font-bold text-lg text-white overflow-hidden group cursor-pointer"
           >
             {/* Animated gradient background */}
-            <div className="absolute inset-0 bg-linear-to-r from-purple-600 via-blue-600 to-pink-600 group-hover:from-purple-500 group-hover:via-blue-500 group-hover:to-pink-500 transition-all duration-300" />
+            <div className="absolute inset-0 bg-linear-to-r from-amber-500 via-orange-500 to-rose-500 group-hover:from-amber-400 group-hover:via-orange-400 group-hover:to-rose-400 transition-all duration-300" />
 
             {/* Shimmer effect */}
             <motion.div
