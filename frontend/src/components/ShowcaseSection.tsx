@@ -76,21 +76,50 @@ interface VideoPlayerProps {
 
 function VideoPlayer({ project, index }: VideoPlayerProps) {
   const [videoStatus, setVideoStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [showControls, setShowControls] = useState(false);
+  const [canPlay, setCanPlay] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Attempt to play video with proper Promise handling and retry logic
+  const attemptPlay = async () => {
+    const video = videoRef.current;
+    if (!video || !canPlay) return;
+
+    try {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        await playPromise;
+        setIsPlaying(true);
+      }
+    } catch (error: any) {
+      // Handle common autoplay errors
+      if (error.name === 'AbortError' || error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
+        // Retry after a short delay
+        setTimeout(() => attemptPlay(), 500);
+      }
+    }
+  };
+
+  // Intersection Observer - play when visible, pause when not
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Intersection Observer for lazy loading
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             video.load();
+            // Attempt play when visible and ready
+            if (canPlay) {
+              attemptPlay();
+            }
+          } else {
+            // Pause when not visible to save power
+            video.pause();
+            setIsPlaying(false);
           }
         });
       },
@@ -100,26 +129,51 @@ function VideoPlayer({ project, index }: VideoPlayerProps) {
     observer.observe(video);
 
     return () => observer.disconnect();
-  }, []);
+  }, [canPlay]);
+
+  // Page Visibility API - pause when tab is hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      if (document.hidden) {
+        video.pause();
+        setIsPlaying(false);
+      } else if (canPlay) {
+        attemptPlay();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [canPlay]);
+
+  const handleCanPlayThrough = () => {
+    setCanPlay(true);
+    setVideoStatus('loaded');
+    attemptPlay();
+  };
 
   const handleVideoLoaded = () => {
-    setVideoStatus('loaded');
+    // Video metadata loaded, but wait for canplaythrough
   };
 
   const handleVideoError = () => {
     setVideoStatus('error');
+    setCanPlay(false);
   };
 
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     const video = videoRef.current;
     if (!video) return;
 
     if (isPlaying) {
       video.pause();
+      setIsPlaying(false);
     } else {
-      video.play();
+      await attemptPlay();
     }
-    setIsPlaying(!isPlaying);
   };
 
   const toggleMute = () => {
@@ -164,11 +218,11 @@ function VideoPlayer({ project, index }: VideoPlayerProps) {
       {videoStatus !== 'error' && (
         <video
           ref={videoRef}
-          autoPlay
           loop
-          muted={isMuted}
+          muted
           playsInline
-          preload="metadata"
+          preload="auto"
+          onCanPlayThrough={handleCanPlayThrough}
           onLoadedData={handleVideoLoaded}
           onError={handleVideoError}
           className={`w-full h-full object-cover ${videoStatus === 'loaded' ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
