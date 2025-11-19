@@ -20,14 +20,14 @@ const socialLinks = [
   {
     name: "GitHub",
     icon: Github,
-    url: "https://github.com/yourusername",
+    url: "https://github.com/narendraAnalytics/ProfessionalLifeStyleShoot.git",
     gradient: "from-gray-700 to-gray-900",
     hoverGradient: "from-gray-600 to-gray-800"
   },
   {
     name: "LinkedIn",
     icon: Linkedin,
-    url: "https://linkedin.com/in/yourusername",
+    url: "https://www.linkedin.com/in/nk-analytics/",
     gradient: "from-blue-600 to-blue-800",
     hoverGradient: "from-blue-500 to-blue-700"
   }
@@ -68,7 +68,7 @@ export default function ContactSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const trailIdRef = useRef(0);
 
-  const yourEmail = "your.email@example.com"; // Update with your email
+  const yourEmail = "narendra.insights@gmail.com"; // Update with your email
 
   // Cursor trail effect
   useEffect(() => {
@@ -513,7 +513,7 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 font-medium">Location</p>
-                  <p className="text-gray-800 font-semibold">Remote / Your City</p>
+                  <p className="text-gray-800 font-semibold">Amaravathi</p>
                 </div>
               </div>
             </motion.div>
