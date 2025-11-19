@@ -1,6 +1,8 @@
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import ShowcaseSection from "@/components/ShowcaseSection";
+import ContactSection from "@/components/ContactSection";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -14,15 +16,11 @@ export default function Home() {
       {/* Showcase Section */}
       <ShowcaseSection />
 
-      {/* Contact Section - Placeholder */}
-      <section id="contact" className="min-h-screen w-full flex items-center justify-center px-8 bg-white/30">
-        <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold bg-linear-to-b from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-4">
-            Contact
-          </h2>
-          <p className="text-xl text-gray-600">Coming soon...</p>
-        </div>
-      </section>
+      {/* Contact Section */}
+      <ContactSection />
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

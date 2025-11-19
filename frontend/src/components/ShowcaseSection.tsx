@@ -8,64 +8,44 @@ import Image from "next/image";
 const projects = [
   {
     id: 1,
-    title: "E-Commerce Platform",
-    description: "Full-stack e-commerce solution with payment integration, real-time inventory, and admin dashboard",
+    title: "ProfessionalLifeStyleShoot",
+    description: "An advanced AI-powered professional lifestyle photography platform that transforms your vision into stunning reality using cutting-edge technology.",
     image: "/images/projects/project1.png", // Replace with your project screenshot
-    techStack: ["Next.js", "TypeScript", "Stripe", "PostgreSQL", "Tailwind"],
-    githubUrl: "https://github.com/yourusername/project1",
-    liveUrl: "https://project1.vercel.app",
+    techStack: ["Next.js", "TypeScript", "clerck", "Neon", "Tailwind"],
+    githubUrl: "https://github.com/narendraAnalytics/ProfessionalLifeStyleShoot.git",
+    liveUrl: "https://professional-life-style-shoot.vercel.app/",
     gradient: "from-blue-500 to-cyan-500"
   },
   {
     id: 2,
-    title: "AI Content Generator",
-    description: "Smart content creation tool powered by AI for blogs, social media, and marketing materials",
+    title: "SnapCook - AI-Powered Recipe Generator",
+    description: "SnapCook is an intelligent recipe generation platform that transforms your available ingredients into personalized, delicious recipes using advanced AI technology.",
     image: "/images/projects/project2.png",
-    techStack: ["React", "Node.js", "OpenAI", "MongoDB", "AWS"],
-    githubUrl: "https://github.com/yourusername/project2",
-    liveUrl: "https://project2.vercel.app",
+    techStack: ["React", "Google Gemini 2.5 Flash", "shadcn/ui ", "Neon", "Drizzle ORM","EmailJS"],
+    githubUrl: "https://github.com/narendraAnalytics/snapcook.git",
+    liveUrl: "https://snapcook-psi.vercel.app/",
     gradient: "from-purple-500 to-pink-500"
   },
   {
     id: 3,
-    title: "Real-Time Chat App",
-    description: "Modern messaging platform with WebSocket support, file sharing, and encrypted communications",
+    title: "StepWise - AI-Powered Math Learning Platform",
+    description: "StepWise transforms math problems into learning opportunities by providing detailed, step-by-step solutions that teach concepts, not just answers.",
     image: "/images/projects/project3.png",
-    techStack: ["React", "Socket.io", "Express", "Redis", "Docker"],
-    githubUrl: "https://github.com/yourusername/project3",
-    liveUrl: "https://project3.vercel.app",
+    techStack: ["Next.js 15", "TypeScript", "Clerk", " Neon PostgreSQL + Drizzle ORM", "Vercel"],
+    githubUrl: "https://github.com/narendraAnalytics/stepwise.git",
+    liveUrl: "https://stepwise-gules.vercel.app/",
     gradient: "from-green-500 to-emerald-500"
   },
   {
     id: 4,
-    title: "Task Management System",
-    description: "Collaborative project management tool with kanban boards, team collaboration, and analytics",
+    title: "Personal Research AI Assistant",
+    description: "An intelligent research assistant powered by LangGraph, Gemini AI, and advanced parallel execution",
     image: "/images/projects/project4.png",
-    techStack: ["Vue.js", "Firebase", "Vuex", "Chart.js", "Vercel"],
-    githubUrl: "https://github.com/yourusername/project4",
-    liveUrl: "https://project4.vercel.app",
+    techStack: ["Next.js", "FastAPI", "Python", "LangGraph", "Google Gemini","Clerk"],
+    githubUrl: "https://github.com/narendraAnalytics/aiagent.git",
+    liveUrl: "https://aiagent-ten-nu.vercel.app/",
     gradient: "from-orange-500 to-red-500"
   },
-  {
-    id: 5,
-    title: "Weather Forecast Dashboard",
-    description: "Beautiful weather app with interactive maps, hourly forecasts, and location-based alerts",
-    image: "/images/projects/project5.png",
-    techStack: ["React", "Weather API", "Mapbox", "Recharts", "Netlify"],
-    githubUrl: "https://github.com/yourusername/project5",
-    liveUrl: "https://project5.vercel.app",
-    gradient: "from-indigo-500 to-blue-500"
-  },
-  {
-    id: 6,
-    title: "Portfolio Website Builder",
-    description: "Drag-and-drop website builder for creating stunning portfolios without coding knowledge",
-    image: "/images/projects/project6.png",
-    techStack: ["Next.js", "DnD Kit", "Supabase", "Tailwind", "Vercel"],
-    githubUrl: "https://github.com/yourusername/project6",
-    liveUrl: "https://project6.vercel.app",
-    gradient: "from-yellow-500 to-orange-500"
-  }
 ];
 
 // Tech stack color mapping for badges
