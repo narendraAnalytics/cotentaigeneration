@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Github, ExternalLink, Sparkles, Code2 } from "lucide-react";
-import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Github, ExternalLink, Sparkles, Code2, Play, Pause, Volume2, VolumeX, Loader2 } from "lucide-react";
 
 // Project data structure - easily update with your real projects
 const projects = [
@@ -10,7 +10,8 @@ const projects = [
     id: 1,
     title: "ProfessionalLifeStyleShoot",
     description: "An advanced AI-powered professional lifestyle photography platform that transforms your vision into stunning reality using cutting-edge technology.",
-    image: "/images/projects/project1.png", // Replace with your project screenshot
+    video: "/videos/project1.mp4", // Add your video file here
+    image: "/images/projects/project1.png", // Fallback image
     techStack: ["Next.js", "TypeScript", "clerck", "Neon", "Tailwind"],
     githubUrl: "https://github.com/narendraAnalytics/ProfessionalLifeStyleShoot.git",
     liveUrl: "https://professional-life-style-shoot.vercel.app/",
@@ -20,6 +21,7 @@ const projects = [
     id: 2,
     title: "SnapCook - AI-Powered Recipe Generator",
     description: "SnapCook is an intelligent recipe generation platform that transforms your available ingredients into personalized, delicious recipes using advanced AI technology.",
+    video: "/videos/project2.mp4",
     image: "/images/projects/project2.png",
     techStack: ["React", "Google Gemini 2.5 Flash", "shadcn/ui ", "Neon", "Drizzle ORM","EmailJS"],
     githubUrl: "https://github.com/narendraAnalytics/snapcook.git",
@@ -30,6 +32,7 @@ const projects = [
     id: 3,
     title: "StepWise - AI-Powered Math Learning Platform",
     description: "StepWise transforms math problems into learning opportunities by providing detailed, step-by-step solutions that teach concepts, not just answers.",
+    video: "/videos/project3.mp4",
     image: "/images/projects/project3.png",
     techStack: ["Next.js 15", "TypeScript", "Clerk", " Neon PostgreSQL + Drizzle ORM", "Vercel"],
     githubUrl: "https://github.com/narendraAnalytics/stepwise.git",
@@ -40,6 +43,7 @@ const projects = [
     id: 4,
     title: "Personal Research AI Assistant",
     description: "An intelligent research assistant powered by LangGraph, Gemini AI, and advanced parallel execution",
+    video: "/videos/project4.mp4",
     image: "/images/projects/project4.png",
     techStack: ["Next.js", "FastAPI", "Python", "LangGraph", "Google Gemini","Clerk"],
     githubUrl: "https://github.com/narendraAnalytics/aiagent.git",
@@ -63,6 +67,174 @@ const techColors: Record<string, string> = {
   "AWS": "bg-gradient-to-r from-orange-600 to-yellow-500 text-white",
   default: "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
 };
+
+// Video Player Component
+interface VideoPlayerProps {
+  project: typeof projects[0];
+  index: number;
+}
+
+function VideoPlayer({ project, index }: VideoPlayerProps) {
+  const [videoStatus, setVideoStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const [showControls, setShowControls] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Intersection Observer for lazy loading
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.load();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(video);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleVideoLoaded = () => {
+    setVideoStatus('loaded');
+  };
+
+  const handleVideoError = () => {
+    setVideoStatus('error');
+  };
+
+  const togglePlayPause = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+    } else {
+      video.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
+  return (
+    <div
+      className="relative w-full h-56 sm:h-64 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden"
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(false)}
+    >
+      {/* Gradient Background */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient} opacity-20`} />
+
+      {/* Loading State */}
+      <AnimatePresence>
+        {videoStatus === 'loading' && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 z-20"
+          >
+            <div className="text-center">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className={`w-12 h-12 text-gray-400 mx-auto mb-2`} />
+              </motion.div>
+              <p className="text-sm text-gray-500 font-medium">Loading demo...</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Video Element */}
+      {videoStatus !== 'error' && (
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted={isMuted}
+          playsInline
+          preload="metadata"
+          onLoadedData={handleVideoLoaded}
+          onError={handleVideoError}
+          className={`w-full h-full object-cover ${videoStatus === 'loaded' ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
+        >
+          <source src={project.video} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      )}
+
+      {/* Error Fallback */}
+      {videoStatus === 'error' && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-500 font-medium">Project Demo</p>
+          </div>
+        </div>
+      )}
+
+      {/* Hover Overlay */}
+      <motion.div
+        className={`absolute inset-0 bg-gradient-to-br ${project.gradient} opacity-0 group-hover:opacity-30 transition-opacity duration-300`}
+      />
+
+      {/* Video Controls */}
+      <AnimatePresence>
+        {showControls && videoStatus === 'loaded' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute bottom-4 left-4 right-4 flex items-center gap-2 px-4 py-2 rounded-xl bg-black/50 backdrop-blur-md z-30"
+          >
+            {/* Play/Pause Button */}
+            <button
+              onClick={togglePlayPause}
+              className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+              aria-label={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? (
+                <Pause className="w-4 h-4 text-white" />
+              ) : (
+                <Play className="w-4 h-4 text-white" />
+              )}
+            </button>
+
+            {/* Mute/Unmute Button */}
+            <button
+              onClick={toggleMute}
+              className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+              aria-label={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? (
+                <VolumeX className="w-4 h-4 text-white" />
+              ) : (
+                <Volume2 className="w-4 h-4 text-white" />
+              )}
+            </button>
+
+            <span className="text-xs text-white/80 ml-auto">Demo Video</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function ShowcaseSection() {
   return (
@@ -147,29 +319,8 @@ export default function ShowcaseSection() {
               >
                 {/* Card */}
                 <div className="relative h-full rounded-2xl bg-white/70 backdrop-blur-md border border-white/50 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
-                  {/* Project Image */}
-                  <div className="relative w-full h-56 sm:h-64 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-                    {/* Placeholder gradient background */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient} opacity-20`} />
-
-                    {/* Image overlay effect */}
-                    <motion.div
-                      className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"
-                    />
-
-                    {/* "Add Your Screenshot" Placeholder */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500 font-medium">Project Screenshot</p>
-                      </div>
-                    </div>
-
-                    {/* Hover Overlay */}
-                    <motion.div
-                      className={`absolute inset-0 bg-gradient-to-br ${project.gradient} opacity-0 group-hover:opacity-30 transition-opacity duration-300`}
-                    />
-                  </div>
+                  {/* Project Video */}
+                  <VideoPlayer project={project} index={index} />
 
                   {/* Project Details */}
                   <div className="relative p-6">
