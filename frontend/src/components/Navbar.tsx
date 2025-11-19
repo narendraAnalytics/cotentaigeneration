@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   Home,
   Sparkles,
-  DollarSign,
+  Briefcase,
   Mail,
   Menu,
   X,
@@ -34,12 +34,12 @@ const navItems = [
     iconColor: "text-orange-500"
   },
   {
-    name: "Pricing",
-    href: "#pricing",
-    icon: DollarSign,
-    gradient: "from-yellow-500 to-amber-500",
-    hoverGradient: "hover:from-yellow-600 hover:to-amber-600",
-    iconColor: "text-yellow-600"
+    name: "Showcase",
+    href: "#showcase",
+    icon: Briefcase,
+    gradient: "from-purple-500 to-indigo-500",
+    hoverGradient: "hover:from-purple-600 hover:to-indigo-600",
+    iconColor: "text-purple-600"
   },
   {
     name: "Contact",
