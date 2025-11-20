@@ -22,11 +22,6 @@ export function useUser() {
   return stackClientApp.useUser();
 }
 
-// Sign out function
-export async function signOut() {
-  await stackClientApp.signOut();
-}
-
 // Get user display name
 export function getUserDisplayName(user: any) {
   return user?.displayName || user?.primaryEmail || "User";
