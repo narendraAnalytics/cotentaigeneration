@@ -188,7 +188,7 @@ export default function ContactSection() {
     <section
       ref={sectionRef}
       id="contact"
-      className="relative min-h-screen w-full py-20 px-4 sm:px-8 overflow-hidden bg-gradient-to-br from-slate-50 via-white to-gray-50"
+      className="relative min-h-screen w-full py-20 px-4 sm:px-8 overflow-hidden bg-linear-to-br from-slate-50 via-white to-gray-50"
     >
       {/* Cursor Trail Effect */}
       <AnimatePresence>
@@ -199,7 +199,7 @@ export default function ContactSection() {
             animate={{ scale: 2, opacity: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="absolute pointer-events-none rounded-full bg-gradient-to-r from-orange-400 via-rose-400 to-pink-400 blur-xl"
+            className="absolute pointer-events-none rounded-full bg-linear-to-br from-orange-400 via-rose-400 to-pink-400 blur-xl"
             style={{
               left: trail.x,
               top: trail.y,
@@ -220,7 +220,7 @@ export default function ContactSection() {
             opacity: [0.1, 0.2, 0.1],
           }}
           transition={{ duration: 15, repeat: Infinity }}
-          className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-orange-300 to-rose-300 rounded-full blur-3xl"
+          className="absolute -top-40 -left-40 w-96 h-96 bg-linear-to-br from-orange-300 to-rose-300 rounded-full blur-3xl"
         />
         <motion.div
           animate={{
@@ -228,7 +228,7 @@ export default function ContactSection() {
             opacity: [0.1, 0.2, 0.1],
           }}
           transition={{ duration: 18, repeat: Infinity }}
-          className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-br from-purple-300 to-indigo-300 rounded-full blur-3xl"
+          className="absolute -bottom-40 -right-40 w-96 h-96 bg-linear-to-br from-purple-300 to-indigo-300 rounded-full blur-3xl"
         />
       </div>
 
@@ -246,16 +246,16 @@ export default function ContactSection() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-100 via-rose-100 to-pink-100 mb-4"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-br from-orange-100 via-rose-100 to-pink-100 mb-4"
           >
             <Sparkles className="w-4 h-4 text-rose-600" />
-            <span className="text-sm font-semibold bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
+            <span className="text-sm font-semibold bg-linear-to-br from-orange-600 to-rose-600 bg-clip-text text-transparent">
               Get In Touch
             </span>
           </motion.div>
 
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-br from-orange-500 via-rose-500 to-pink-500 bg-clip-text text-transparent">
               Let's Work Together
             </span>
           </h2>
@@ -279,7 +279,7 @@ export default function ContactSection() {
               {/* Glassmorphic Form Container */}
               <div className="relative p-8 sm:p-10 rounded-3xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-2xl">
                 {/* Gradient Glow */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500 rounded-3xl blur-2xl opacity-20 -z-10" />
+                <div className="absolute -inset-1 bg-linear-to-br from-orange-500 via-rose-500 to-pink-500 rounded-3xl blur-2xl opacity-20 -z-10" />
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Name Input */}
@@ -399,12 +399,12 @@ export default function ContactSection() {
                     className="relative w-full px-8 py-4 rounded-2xl font-bold text-lg text-white overflow-hidden group disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {/* Gradient Background */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500 group-hover:from-orange-400 group-hover:via-rose-400 group-hover:to-pink-400 transition-all duration-300" />
+                    <div className="absolute inset-0 bg-linear-to-br from-orange-500 via-rose-500 to-pink-500 group-hover:from-orange-400 group-hover:via-rose-400 group-hover:to-pink-400 transition-all duration-300" />
 
                     {/* Shimmer Effect */}
                     {!isSubmitting && (
                       <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        className="absolute inset-0 bg-linear-to-br from-transparent via-white/30 to-transparent"
                         animate={{
                           x: ["-100%", "200%"],
                         }}
@@ -481,7 +481,7 @@ export default function ContactSection() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500">
+                  <div className="p-3 rounded-xl bg-linear-to-br from-orange-500 to-rose-500">
                     <Mail className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -508,7 +508,7 @@ export default function ContactSection() {
               className="p-6 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-lg hover:shadow-xl transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500">
+                <div className="p-3 rounded-xl bg-linear-to-r from-purple-500 to-indigo-500">
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -524,7 +524,7 @@ export default function ContactSection() {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center">
-                <span className="px-4 text-sm text-gray-500 bg-gradient-to-br from-slate-50 via-white to-gray-50">
+                <span className="px-4 text-sm text-gray-500 bg-linear-to-br from-slate-50 via-white to-gray-50">
                   Connect with me
                 </span>
               </div>
@@ -546,19 +546,19 @@ export default function ContactSection() {
                   className="group relative flex items-center gap-4 p-4 rounded-xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-md hover:shadow-xl transition-all overflow-hidden"
                 >
                   {/* Gradient Background on Hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-r ${social.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+                  <div className={`absolute inset-0 bg-linear-to-br ${social.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
 
                   {/* Icon */}
                   <motion.div
                     whileHover={{ rotate: [0, -10, 10, -10, 0] }}
                     transition={{ duration: 0.5 }}
-                    className={`relative p-3 rounded-xl bg-gradient-to-r ${social.gradient} shadow-lg`}
+                    className={`relative p-3 rounded-xl bg-linear-to-br ${social.gradient} shadow-lg`}
                   >
                     <social.icon className="w-5 h-5 text-white" strokeWidth={2.5} />
                   </motion.div>
 
                   {/* Name */}
-                  <span className={`relative font-semibold text-gray-700 group-hover:bg-gradient-to-r group-hover:${social.gradient} group-hover:bg-clip-text group-hover:text-transparent transition-all`}>
+                  <span className={`relative font-semibold text-gray-700 group-hover:bg-linear-to-r group-hover:${social.gradient} group-hover:bg-clip-text group-hover:text-transparent transition-all`}>
                     {social.name}
                   </span>
 

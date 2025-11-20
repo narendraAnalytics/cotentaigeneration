@@ -6,6 +6,7 @@
     "dev": "motia dev",
     "generate-types": "motia generate-types",
     "build": "motia build",
+    "deploy": "motia cloud deploy",
     "clean": "rm -rf dist node_modules python_modules .motia .mermaid"
   },
   "keywords": [

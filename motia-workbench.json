@@ -13,8 +13,33 @@
     }
   },
   {
+    "id": "email-generation",
+    "config": {
+      "steps\\get-email.step.ts": {
+        "x": -467,
+        "y": -174
+      },
+      "steps\\generate-email.step.ts": {
+        "x": -890,
+        "y": -326
+      },
+      "steps\\generate-email-content.step.ts": {
+        "x": -472,
+        "y": -356
+      }
+    }
+  },
+  {
     "id": "content-generation",
     "config": {
+      "steps\\suggest-blog-metadata.step.ts": {
+        "x": -408,
+        "y": -30
+      },
+      "steps\\send-generated-email.step.ts": {
+        "x": 0,
+        "y": 224
+      },
       "steps\\send-blog-email.step.ts": {
         "x": 341,
         "y": -275
@@ -42,27 +67,6 @@
       "steps\\enhance-prompt.step.ts": {
         "x": -692,
         "y": -216
-      },
-      "steps\\suggest-blog-metadata.step.ts": {
-        "x": -408,
-        "y": -30
-      }
-    }
-  },
-  {
-    "id": "email-generation",
-    "config": {
-      "steps\\get-email.step.ts": {
-        "x": -467,
-        "y": -174
-      },
-      "steps\\generate-email.step.ts": {
-        "x": -890,
-        "y": -326
-      },
-      "steps\\generate-email-content.step.ts": {
-        "x": -472,
-        "y": -356
       }
     }
   }
