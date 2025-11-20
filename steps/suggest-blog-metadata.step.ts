@@ -2,6 +2,7 @@ import { ApiRouteConfig } from 'motia';
 import type { ApiRouteHandler } from 'motia';
 import { z } from 'zod';
 import { GoogleGenAI } from '@google/genai';
+import { corsHeaders } from '../src/utils/cors';
 
 /**
  * Input Schema for Metadata Suggestion API
@@ -137,6 +138,7 @@ Respond with ONLY the JSON object, no additional text.`;
 
     return {
       status: 200,
+      headers: corsHeaders,
       body: validatedSuggestions
     };
 
@@ -150,6 +152,7 @@ Respond with ONLY the JSON object, no additional text.`;
     // Return fallback suggestions on error
     return {
       status: 200,
+      headers: corsHeaders,
       body: {
         keywords: [
           topic.toLowerCase(),

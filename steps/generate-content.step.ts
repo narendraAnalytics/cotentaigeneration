@@ -2,6 +2,7 @@ import { ApiRouteConfig, Handlers } from 'motia';
 import { z } from 'zod';
 import { ContentRequestSchema } from '../src/types/content.types';
 import { randomUUID } from 'crypto';
+import { corsHeaders } from '../src/utils/cors';
 
 /**
  * Response schemas for the API endpoint
@@ -67,6 +68,7 @@ export const handler: Handlers['GenerateContent'] = async (req, { emit, logger }
     // Return 202 Accepted - processing will happen asynchronously
     return {
       status: 202,
+      headers: corsHeaders,
       body: {
         id: requestId,
         status: 'accepted',
@@ -80,6 +82,7 @@ export const handler: Handlers['GenerateContent'] = async (req, { emit, logger }
 
     return {
       status: 500,
+      headers: corsHeaders,
       body: {
         error: 'Failed to process request. Please try again later.'
       }
