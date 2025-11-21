@@ -15,7 +15,6 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { useUser } from "@/lib/auth";
-import { stackClientApp } from "@/stack/client";
 
 const navItems = [
   {
@@ -80,9 +79,8 @@ export default function Navbar() {
     }
   };
 
-  const handleSignOut = async () => {
-    await stackClientApp.signOut();
-    router.push('/');
+  const handleSignOut = () => {
+    router.push('/handler/sign-out');
   };
 
   return (
