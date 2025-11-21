@@ -312,211 +312,4 @@ graph TD
 
 ```
 aicopywrite/
-   src/                          # Backend source code
-      config/
-         templates.ts          # Content templates & prompts
-      services/
-         gemini/               # Google Gemini integration
-            gemini.service.ts # Content generation
-            tts.service.ts    # Text-to-speech
-         email/
-             resend.service.ts # Email delivery
-      types/                    # TypeScript type definitions
-         content.types.ts      # Blog/article schemas
-         email.types.ts        # Email schemas
-      utils/
-          cors.ts               # CORS configuration
-   steps/                        # Motia event/API steps
-      generate-content.step.ts
-      generate-email.step.ts
-      enhance-prompt.step.ts
-      generate-content-with-search.step.ts
-      generate-email-content.step.ts
-      generate-tts.step.ts
-      send-blog-email.step.ts
-   frontend/                     # Next.js frontend
-      src/
-         app/                  # Next.js app routes
-         components/           # React components
-         lib/                  # Utilities & API client
-         db/                   # Database schema
-         hooks/                # Custom React hooks
-      package.json
-   motia.config.ts               # Motia configuration
-   package.json
-   tsconfig.json
-   railway.json                  # Railway deployment config
-```
-
----
-
-## Deployment
-
-### Backend Deployment (Railway)
-- **Platform**: Railway
-- **Start Command**: `npm start` (runs `motia start`)
-- **Build**: Nixpacks
-- **Restart Policy**: ON_FAILURE with max 10 retries
-- **Required Environment Variables**: See [Quick Start](#quick-start) section
-
-### Frontend Deployment (Vercel/Railway)
-- **Framework**: Next.js
-- **Build Command**: `npm run build`
-- **Start Command**: `npm start`
-- **Required Environment Variables**: See [Quick Start](#quick-start) section
-
-### Database Setup (Neon)
-- Create a Neon serverless PostgreSQL database
-- Configure Neon Auth for automatic user synchronization
-- Run database migrations using Drizzle ORM
-
----
-
-## Contributing
-
-We welcome contributions to AI Copywrite! Here's how you can help:
-
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Make your changes**
-   - Follow TypeScript best practices
-   - Maintain Motia event-driven architecture patterns
-   - Add tests for new functionality
-   - Update documentation as needed
-
-4. **Test your changes**
-   ```bash
-   # Backend
-   npm test
-
-   # Frontend
-   cd frontend
-   npm run build
-   ```
-
-5. **Commit your changes**
-   ```bash
-   git commit -m "Add: Brief description of your changes"
-   ```
-
-6. **Push to your fork**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-7. **Open a Pull Request**
-   - Provide a clear description of the changes
-   - Reference any related issues
-   - Include screenshots for UI changes
-
-### Development Guidelines
-- Use TypeScript for all new code
-- Follow existing Motia step patterns (API steps, Event steps)
-- Use Zod schemas for validation
-- Implement proper error handling
-- Add JSDoc comments for public functions
-- Keep components small and focused
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-**1. Blog generation fails or times out**
-- **Cause**: Gemini API rate limits or network issues
-- **Solution**:
-  - Check your GEMINI_API_KEY is valid
-  - Retry the generation (rate limits reset quickly)
-  - Reduce word count for faster generation
-
-**2. Audio generation fails but blog is created**
-- **Cause**: TTS rate limits or model availability
-- **Solution**: This is expected behavior (graceful degradation). Blog content is still saved and usable. Try regenerating audio later.
-
-**3. Email sending fails in testing mode**
-- **Cause**: Resend testing mode restricts recipients
-- **Solution**:
-  - Verify recipient email in Resend dashboard
-  - Upgrade to production mode for unrestricted sending
-  - Check RESEND_API_KEY and RESEND_FROM_EMAIL are correct
-
-**4. Database connection errors**
-- **Cause**: Invalid DATABASE_URL or network issues
-- **Solution**:
-  - Verify Neon connection string format
-  - Check database is active (Neon serverless may sleep)
-  - Ensure IP allowlist includes your deployment IP
-
-**5. Authentication redirect loops**
-- **Cause**: Misconfigured Stack Auth credentials
-- **Solution**:
-  - Verify NEXT_PUBLIC_STACK_PROJECT_ID and NEXT_PUBLIC_STACK_PUBLIC_KEY
-  - Check Stack Auth dashboard for correct redirect URLs
-  - Clear browser cookies and try again
-
-**6. CORS errors in development**
-- **Cause**: Frontend and backend on different ports
-- **Solution**:
-  - Ensure NEXT_PUBLIC_BACKEND_URL points to correct backend URL
-  - Check cors.ts configuration includes frontend origin
-  - Restart both servers after environment variable changes
-
-**7. TypeScript errors after updating dependencies**
-- **Cause**: Type definition mismatches
-- **Solution**:
-  ```bash
-  # Backend
-  npx motia generate-types
-
-  # Frontend
-  cd frontend
-  npm run db:push
-  ```
-
-**8. Polling never completes (stuck in "generating" status)**
-- **Cause**: Event step failure or state not updating
-- **Solution**:
-  - Check backend logs for errors
-  - Verify Motia state plugin is configured
-  - Restart backend to clear stuck states
-
-### Getting Help
-
-If you encounter issues not covered here:
-1. Check the [Motia documentation](https://motiadev.com/docs)
-2. Review backend logs for error messages
-3. Open an issue on GitHub with:
-   - Error message and stack trace
-   - Steps to reproduce
-   - Environment details (Node version, OS, etc.)
-
----
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/aicopywrite/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/aicopywrite/discussions)
-- **Motia Documentation**: [https://motiadev.com/docs](https://motiadev.com/docs)
-- **Stack Auth Docs**: [https://docs.stack-auth.com](https://docs.stack-auth.com)
-
----
-
-## Acknowledgments
-
-Built with:
-- [Motia](https://motiadev.com) - Event-driven backend framework
-- [Google Gemini](https://ai.google.dev/) - AI content generation
-- [Next.js](https://nextjs.org/) - React framework
-- [Stack Auth](https://stack-auth.com/) - Authentication
-- [Neon](https://neon.tech/) - Serverless PostgreSQL
-- [Resend](https://resend.com/) - Email delivery
-
----
-
-<div align="center">
-  Made with AI and Motia Framework
-</div>
+
