@@ -287,6 +287,19 @@ graph TD
 
 ---
 
+## Contact
+
+For questions, feedback, or collaboration opportunities:
+
+**Narendra**
+📧 Email: [narendra.insights@gmail.com](mailto:narendra.insights@gmail.com)
+
+Feel free to reach out for:
+- Feature requests or suggestions
+- Technical support
+- Collaboration opportunities
+- General inquiries about the project
+
 ## API Endpoints
 
 ### Content Generation
