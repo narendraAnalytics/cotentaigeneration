@@ -17,8 +17,7 @@
 
 ## Live Demo
 
-**[View Live Application](https://cotentaigeneration.vercel.app/)** (Update with your deployed URL)
-
+**[View Live Application](https://cotentaigeneration.vercel.app/)** 
 ---
 
 ## Features
